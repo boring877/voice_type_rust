@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"Capability for the main and HUD Tauri windows.","local":true,"windows":["main","hud"],"permissions":["core:default","dialog:allow-open"]}}

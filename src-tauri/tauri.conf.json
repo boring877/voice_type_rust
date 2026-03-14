@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Voice Type",
+  "version": "2.5.0",
+  "identifier": "com.voice_type.desktop",
+  "build": {
+    "beforeDevCommand": "bun run dev",
+    "beforeBuildCommand": "bun run build",
+    "devUrl": "http://127.0.0.1:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Voice Type",
+        "width": 1480,
+        "height": 980,
+        "minWidth": 1120,
+        "minHeight": 760,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "assetProtocol": {
+        "enable": true,
+        "scope": [
+          "$APPDATA/voice-type/backgrounds/**",
+          "$HOME/.config/voice-type/backgrounds/**",
+          "$HOME/Library/Application Support/voice-type/backgrounds/**"
+        ]
+      },
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": false
+  }
+}
