@@ -476,6 +476,7 @@ export default function App() {
         <section className="stage-area">
           <div className="stage-brand">
             <span className="window-label">{appInfo.appName}</span>
+            <span className="version-pill">v{appInfo.version}</span>
           </div>
 
           <div className="stage-focus">

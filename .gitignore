@@ -4,6 +4,7 @@ target/
 src-tauri/target/
 target-jpeg/
 .vscode/
+package-lock.json
 
 *.log
 npm-debug.log*

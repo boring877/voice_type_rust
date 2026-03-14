@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Voice Type",
-  "version": "2.5.0",
-  "identifier": "com.voice_type.desktop",
+  "version": "0.2.0",
+  "identifier": "com.voicetype.desktop",
   "build": {
     "beforeDevCommand": "bun run dev",
     "beforeBuildCommand": "bun run build",
@@ -35,6 +35,7 @@
     }
   },
   "bundle": {
-    "active": false
+    "active": true,
+    "targets": ["nsis"]
   }
 }
