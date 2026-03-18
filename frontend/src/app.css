@@ -968,11 +968,6 @@ textarea::placeholder {
   display: none;
 }
 
-.quickstart-actions {
-  display: flex;
-  justify-content: flex-start;
-}
-
 .mode-toggle-row {
   display: flex;
   gap: 0.55rem;

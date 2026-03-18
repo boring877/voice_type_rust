@@ -516,7 +516,12 @@ export default function App() {
             {!advancedMode && (
               <QuickStartSection
                 config={config}
+                hotkeyLabel={hotkeyLabel}
+                capturingHotkey={capturingHotkey}
+                captureMessage={captureMessage}
                 onUpdate={update}
+                onStartHotkeyCapture={startHotkeyCapture}
+                onStopHotkeyCapture={stopHotkeyCapture}
                 onOpenApiKeyPage={openApiKeyPage}
               />
             )}

@@ -22,10 +22,24 @@ type UpdateConfig = <K extends keyof Config>(key: K, value: Config[K]) => void;
 
 export function QuickStartSection(props: {
   config: Config;
+  hotkeyLabel: string;
+  capturingHotkey: boolean;
+  captureMessage: string;
   onUpdate: UpdateConfig;
+  onStartHotkeyCapture: () => void;
+  onStopHotkeyCapture: () => void;
   onOpenApiKeyPage: () => void;
 }) {
-  const { config, onOpenApiKeyPage, onUpdate } = props;
+  const {
+    captureMessage,
+    capturingHotkey,
+    config,
+    hotkeyLabel,
+    onOpenApiKeyPage,
+    onStartHotkeyCapture,
+    onStopHotkeyCapture,
+    onUpdate
+  } = props;
 
   return (
     <section className="dock-section">
@@ -46,11 +60,23 @@ export function QuickStartSection(props: {
         options={modelOptions}
       />
 
-      <div className="quickstart-actions">
-        <button className="link-button" onClick={onOpenApiKeyPage} type="button">
-          Get API key
+      <DisplayField label="Push-to-talk key" value={hotkeyLabel} />
+
+      <div className="capture-row">
+        <button className="secondary-button" onClick={onStartHotkeyCapture} type="button">
+          {capturingHotkey ? "Listening..." : "Change hotkey"}
         </button>
+        {capturingHotkey ? (
+          <button className="ghost-button" onClick={onStopHotkeyCapture} type="button">
+            Cancel
+          </button>
+        ) : null}
+        <p className="hint-text">{captureMessage}</p>
       </div>
+
+      <button className="link-button" onClick={onOpenApiKeyPage} type="button">
+        Get API key
+      </button>
     </section>
   );
 }
