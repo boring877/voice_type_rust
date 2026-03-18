@@ -13,6 +13,7 @@ import { getBrowserKeyboardCode, getBrowserMouseButton } from "./lib/hotkeys";
 import { fallbackConfig, fallbackInfo, fallbackRuntime } from "./lib/options";
 import {
   AdvancedSection,
+  QuickStartSection,
   SettingsSection,
   SetupSection
 } from "./components/sections";
@@ -512,36 +513,46 @@ export default function App() {
               </button>
             </div>
 
-            <SetupSection
-              config={config}
-              micNames={micNames}
-              hotkeyLabel={hotkeyLabel}
-              capturingHotkey={capturingHotkey}
-              captureMessage={captureMessage}
-              onUpdate={update}
-              onStartHotkeyCapture={startHotkeyCapture}
-              onStopHotkeyCapture={stopHotkeyCapture}
-              onOpenApiKeyPage={openApiKeyPage}
-            />
-
-            <SettingsSection
-              config={config}
-              filterWordsText={filterWordsText}
-              onUpdate={update}
-              onUpdateFilterWords={updateFilterWords}
-            />
+            {!advancedMode && (
+              <QuickStartSection
+                config={config}
+                onUpdate={update}
+                onOpenApiKeyPage={openApiKeyPage}
+              />
+            )}
 
             {advancedMode && (
-              <AdvancedSection
-                backgroundMode={backgroundMode}
-                config={config}
-                expanded={true}
-                onPickBackgroundImage={pickBackgroundImage}
-                onResetAppearance={resetAppearance}
-                onToggle={() => {}}
-                onUpdate={update}
-                theme={theme}
-              />
+              <>
+                <SetupSection
+                  config={config}
+                  micNames={micNames}
+                  hotkeyLabel={hotkeyLabel}
+                  capturingHotkey={capturingHotkey}
+                  captureMessage={captureMessage}
+                  onUpdate={update}
+                  onStartHotkeyCapture={startHotkeyCapture}
+                  onStopHotkeyCapture={stopHotkeyCapture}
+                  onOpenApiKeyPage={openApiKeyPage}
+                />
+
+                <SettingsSection
+                  config={config}
+                  filterWordsText={filterWordsText}
+                  onUpdate={update}
+                  onUpdateFilterWords={updateFilterWords}
+                />
+
+                <AdvancedSection
+                  backgroundMode={backgroundMode}
+                  config={config}
+                  expanded={true}
+                  onPickBackgroundImage={pickBackgroundImage}
+                  onResetAppearance={resetAppearance}
+                  onToggle={() => {}}
+                  onUpdate={update}
+                  theme={theme}
+                />
+              </>
             )}
           </div>
         </aside>

@@ -20,6 +20,41 @@ import type { BackgroundMode, Config, ThemeMode } from "../types";
 
 type UpdateConfig = <K extends keyof Config>(key: K, value: Config[K]) => void;
 
+export function QuickStartSection(props: {
+  config: Config;
+  onUpdate: UpdateConfig;
+  onOpenApiKeyPage: () => void;
+}) {
+  const { config, onOpenApiKeyPage, onUpdate } = props;
+
+  return (
+    <section className="dock-section">
+      <SectionHeader title="Setup" />
+
+      <TextField
+        label="Groq API key"
+        type="password"
+        value={config.api_key}
+        onChange={(value) => onUpdate("api_key", value)}
+        placeholder="gsk_..."
+      />
+
+      <SelectField
+        label="Whisper model"
+        value={config.transcription_model}
+        onChange={(value) => onUpdate("transcription_model", value)}
+        options={modelOptions}
+      />
+
+      <div className="quickstart-actions">
+        <button className="link-button" onClick={onOpenApiKeyPage} type="button">
+          Get API key
+        </button>
+      </div>
+    </section>
+  );
+}
+
 export function SetupSection(props: {
   config: Config;
   micNames: string[];
