@@ -81,6 +81,7 @@ pub fn parse_hotkey(hotkey_str: &str) -> Result<InputBinding> {
         "." | "dot" | "period" => Key::Dot,
         "/" | "slash" => Key::Slash,
         "kpplus" | "numpad+" => Key::KpPlus,
+        "kpminus" | "numpad-" => Key::KpMinus,
         "kpmultiply" | "numpad*" => Key::KpMultiply,
         "kpdivide" | "numpad/" => Key::KpDivide,
         "kp0" => Key::Kp0,
@@ -227,7 +228,7 @@ fn browser_code_to_config_value(code: &str) -> Option<String> {
         "Period" => ".",
         "Slash" => "/",
         "NumpadAdd" => "kpplus",
-        "NumpadSubtract" => "-",
+        "NumpadSubtract" => "kpminus",
         "NumpadMultiply" => "kpmultiply",
         "NumpadDivide" => "kpdivide",
         _ => return None,
@@ -325,7 +326,7 @@ pub fn type_text(text: &str, leave_in_clipboard: bool) -> Result<()> {
 
     // For short text, type character by character
     // For longer text, use clipboard paste
-    if text.len() > 10 {
+    if text.chars().count() > 10 {
         type_via_clipboard(text, leave_in_clipboard)
     } else {
         type_character_by_character(text)?;

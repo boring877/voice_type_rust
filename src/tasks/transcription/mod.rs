@@ -77,7 +77,11 @@ pub async fn transcription_task(
                         &prepared.options,
                     )
                     .await;
-                    let style = app_state.lock().await.config.style.clone();
+
+                    let (style, leave_in_clipboard) = {
+                        let state = app_state.lock().await;
+                        (state.config.style.clone(), state.config.auto_copy)
+                    };
                     let final_text =
                         apply_style_preset(&final_text, &style, &prepared.options.language);
 
@@ -86,10 +90,8 @@ pub async fn transcription_task(
                     let _ = gui_tx.try_send(GuiCommand::SetStatus(status));
                     let _ = gui_tx.try_send(GuiCommand::SetState(AppState::Done));
 
-                    let leave_in_clipboard = app_state.lock().await.config.auto_copy;
-                    let final_text_clone = final_text.clone();
                     let type_result = tokio::task::spawn_blocking(move || {
-                        type_text(&final_text_clone, leave_in_clipboard)
+                        type_text(&final_text, leave_in_clipboard)
                     })
                     .await;
                     if let Err(e) = type_result.unwrap_or_else(|e| Err(anyhow::anyhow!("Task join error: {}", e))) {

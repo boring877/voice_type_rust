@@ -316,10 +316,15 @@ pub fn encode_wav(samples: &[i16], sample_rate: u32) -> Result<Vec<u8>> {
 ///
 /// Useful for showing recording duration to user.
 pub fn wav_duration_seconds(wav_bytes: &[u8]) -> f32 {
-    // WAV header is 44 bytes, each sample is 2 bytes (16-bit)
-    let data_size = wav_bytes.len().saturating_sub(44);
-    let sample_count = data_size / 2;
-    sample_count as f32 / SAMPLE_RATE as f32
+    let cursor = std::io::Cursor::new(wav_bytes);
+    match hound::WavReader::new(cursor) {
+        Ok(reader) => reader.duration() as f32 / reader.spec().sample_rate as f32,
+        Err(_) => {
+            let data_size = wav_bytes.len().saturating_sub(44);
+            let sample_count = data_size / 2;
+            sample_count as f32 / SAMPLE_RATE as f32
+        }
+    }
 }
 
 /// Check if recording is long enough to process

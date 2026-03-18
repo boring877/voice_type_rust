@@ -283,7 +283,10 @@ fn scale_number_value(token: &str) -> Option<u64> {
 pub fn format_number_commas(text: &str) -> String {
     NUMBER_COMMAS_REGEX
         .replace_all(text, |caps: &regex::Captures| {
-            let num: u64 = caps[1].parse().unwrap_or(0);
+            let num: u64 = match caps[1].parse() {
+                Ok(n) => n,
+                Err(_) => return caps[0].to_string(),
+            };
             format_with_commas(num)
         })
         .to_string()
@@ -504,11 +507,14 @@ fn niko_expression(text: &str, mood: StyleMood) -> &'static str {
 pub fn filter_words(text: &str, filter_words: &[String]) -> Option<String> {
     let mut result = text.to_string();
 
-    for word in filter_words {
-        let trimmed = word.trim();
-        if trimmed.is_empty() {
-            continue;
-        }
+    let mut filters: Vec<&str> = filter_words
+        .iter()
+        .map(|w| w.trim())
+        .filter(|w| !w.is_empty())
+        .collect();
+    filters.sort_by(|a, b| b.split_whitespace().count().cmp(&a.split_whitespace().count()));
+
+    for trimmed in filters {
 
         let pattern = format!(r"\b{}\b", regex::escape(trimmed));
         if let Ok(re) = RegexBuilder::new(&pattern).case_insensitive(true).build() {

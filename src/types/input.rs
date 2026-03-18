@@ -30,7 +30,7 @@ impl InputBinding {
                 Button::Middle => "Mouse Middle".to_string(),
                 Button::Unknown(1) => "Mouse Button 4".to_string(),
                 Button::Unknown(2) => "Mouse Button 5".to_string(),
-                Button::Unknown(code) => format!("Mouse Button {}", code + 2),
+                Button::Unknown(code) => format!("Mouse Button {}", code + 3),
             },
         }
     }
