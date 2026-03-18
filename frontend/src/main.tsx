@@ -5,7 +5,12 @@ import App from "./App";
 import HudApp from "./HudApp";
 import "./app.css";
 
-const currentWindowLabel = getCurrentWindow().label;
+let currentWindowLabel = "main";
+try {
+  currentWindowLabel = getCurrentWindow().label;
+} catch {
+  // Non-Tauri environment: default to main window
+}
 const hudWindow = currentWindowLabel === "hud";
 const RootComponent = hudWindow ? HudApp : App;
 

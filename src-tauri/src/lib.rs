@@ -98,29 +98,7 @@ fn open_external_url(url: String) -> Result<(), String> {
         return Err("Only http and https URLs are allowed".to_string());
     }
 
-    #[cfg(target_os = "windows")]
-    let mut command = {
-        let mut cmd = std::process::Command::new("cmd");
-        cmd.args(["/C", "start", "", trimmed]);
-        cmd
-    };
-
-    #[cfg(target_os = "macos")]
-    let mut command = {
-        let mut cmd = std::process::Command::new("open");
-        cmd.arg(trimmed);
-        cmd
-    };
-
-    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
-    let mut command = {
-        let mut cmd = std::process::Command::new("xdg-open");
-        cmd.arg(trimmed);
-        cmd
-    };
-
-    command
-        .spawn()
+    open::that(trimmed)
         .map(|_| ())
         .map_err(|error| format!("Failed to open URL: {}", error))
 }
@@ -274,7 +252,6 @@ pub fn run() {
                         .to_string()
                         .contains("Another instance is already running") =>
                 {
-                    app.handle().exit(0);
                     std::process::exit(0);
                 }
                 Err(error) => return Err(anyhow::anyhow!(error.to_string()).into()),
@@ -282,12 +259,20 @@ pub fn run() {
             let initial_snapshot = runtime.snapshot();
             app.manage(runtime);
 
-            ensure_hud_window(&app.handle(), &initial_snapshot.config)
-                .map_err(|error| anyhow::anyhow!(error.to_string()))?;
+            if let Err(e) =
+                ensure_hud_window(&app.handle(), &initial_snapshot.config)
+            {
+                tracing::warn!("HUD window creation failed: {}", e);
+            }
 
-            let tray =
-                create_tray(&app.handle()).map_err(|error| anyhow::anyhow!(error.to_string()))?;
-            app.manage(tray);
+            let _tray = match create_tray(&app.handle()) {
+                Ok(tray) => {
+                    app.manage(tray);
+                }
+                Err(e) => {
+                    tracing::warn!("Tray icon creation failed: {}", e);
+                }
+            };
 
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.set_title(config::APP_DISPLAY_NAME);
@@ -296,8 +281,10 @@ pub fn run() {
         })
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                api.prevent_close();
-                let _ = window.hide();
+                if window.label() == "main" {
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
             }
         })
         .invoke_handler(tauri::generate_handler![
@@ -318,5 +305,37 @@ pub fn run() {
             quit_app
         ])
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .unwrap_or_else(|e| {
+            #[cfg(target_os = "windows")]
+            {
+                mod win_msg {
+                    use std::ffi::c_int;
+
+                    unsafe extern "system" {
+                        pub fn MessageBoxA(
+                            hwnd: *mut std::ffi::c_void,
+                            text: *const u8,
+                            caption: *const u8,
+                            utype: c_int,
+                        ) -> c_int;
+                    }
+                }
+
+                let msg =
+                    format!("Failed to start Voice Type:\n{}", e);
+                let caption = std::ffi::CString::new("Voice Type Error")
+                    .unwrap_or_default();
+                let msg_cstr = std::ffi::CString::new(msg)
+                    .unwrap_or_default();
+                unsafe {
+                    win_msg::MessageBoxA(
+                        std::ptr::null_mut(),
+                        msg_cstr.as_ptr() as *const u8,
+                        caption.as_ptr() as *const u8,
+                        0x10,
+                    );
+                }
+            }
+            std::process::exit(1);
+        });
 }

@@ -42,7 +42,7 @@ pub async fn transcribe(
 ) -> Result<String> {
     // Provider factory/dispatch. Add future providers here.
     let provider_impl: Box<dyn TranscriptionProvider> = match provider {
-        Provider::Groq => Box::new(GroqProvider::new()?),
+        Provider::Groq => Box::new(GroqProvider),
     };
     provider_impl.transcribe(audio_bytes, options).await
 }

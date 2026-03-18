@@ -61,6 +61,15 @@ static SHORTHAND_REPLACEMENTS: Lazy<Vec<(Regex, &'static str)>> = Lazy::new(|| {
     .collect()
 });
 
+static NUMBER_COMMAS_REGEX: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"\b(\d{4,})\b").unwrap());
+
+static SPACE_BEFORE_PUNCTUATION_REGEX: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"\s+([,.;:!?])").unwrap());
+
+static CONSECUTIVE_PUNCTUATION_REGEX: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"[,.;:!?]{2,}").unwrap());
+
 const STYLE_NONE: &str = "none";
 const STYLE_JAPANESE_EMOJIS: &str = "japanese_emojis";
 const STYLE_JAPANESE_OMG_LEGACY: &str = "japanese_omg";
@@ -272,9 +281,7 @@ fn scale_number_value(token: &str) -> Option<u64> {
 /// # Returns
 /// Text with commas added to numbers
 pub fn format_number_commas(text: &str) -> String {
-    let number_regex = Regex::new(r"\b(\d{4,})\b").unwrap();
-
-    number_regex
+    NUMBER_COMMAS_REGEX
         .replace_all(text, |caps: &regex::Captures| {
             let num: u64 = caps[1].parse().unwrap_or(0);
             format_with_commas(num)
@@ -509,21 +516,18 @@ pub fn filter_words(text: &str, filter_words: &[String]) -> Option<String> {
         }
     }
 
-    // Clean up spaces left behind before punctuation after removing a phrase.
-    if let Ok(re) = Regex::new(r"\s+([,.;:!?])") {
-        result = re.replace_all(&result, "$1").to_string();
-    }
-    if let Ok(re) = Regex::new(r"[,.;:!?]{2,}") {
-        result = re
-            .replace_all(&result, |captures: &regex::Captures| {
-                captures
-                    .get(0)
-                    .and_then(|value| value.as_str().chars().next())
-                    .map(|character| character.to_string())
-                    .unwrap_or_default()
-            })
-            .to_string();
-    }
+    result = SPACE_BEFORE_PUNCTUATION_REGEX
+        .replace_all(&result, "$1")
+        .to_string();
+    result = CONSECUTIVE_PUNCTUATION_REGEX
+        .replace_all(&result, |captures: &regex::Captures| {
+            captures
+                .get(0)
+                .and_then(|value| value.as_str().chars().next())
+                .map(|character| character.to_string())
+                .unwrap_or_default()
+        })
+        .to_string();
 
     // Clean up extra whitespace
     result = result.split_whitespace().collect::<Vec<_>>().join(" ");

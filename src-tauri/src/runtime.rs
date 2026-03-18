@@ -53,16 +53,26 @@ pub struct RuntimeState {
     shared_state: Arc<Mutex<SharedState>>,
     hotkey_state: Arc<HotkeyState>,
     gui_tx: mpsc::Sender<GuiCommand>,
-    _instance: SingleInstance,
+    _instance: Option<SingleInstance>,
 }
 
 impl RuntimeState {
     pub fn initialize(app: &AppHandle) -> Result<Self> {
-        let instance = SingleInstance::new(SINGLE_INSTANCE_ID)
-            .context("Failed to check single instance state")?;
+        let instance = match SingleInstance::new(SINGLE_INSTANCE_ID) {
+            Ok(inst) => Some(inst),
+            Err(e) => {
+                tracing::warn!(
+                    "Single instance check failed, continuing without lock: {}",
+                    e
+                );
+                None
+            }
+        };
 
-        if !instance.is_single() {
-            anyhow::bail!("Another instance is already running");
+        if let Some(ref inst) = instance {
+            if !inst.is_single() {
+                anyhow::bail!("Another instance is already running");
+            }
         }
 
         let config = config::load();
@@ -156,7 +166,10 @@ impl RuntimeState {
     }
 
     pub fn snapshot(&self) -> RuntimeSnapshot {
-        self.snapshot.lock().unwrap().clone()
+        self.snapshot
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
     }
 
     pub fn update_runtime_state(&self, state: AppState, status_text: impl Into<String>) {
@@ -334,7 +347,9 @@ fn spawn_gui_bridge(
     thread::spawn(move || {
         while let Some(cmd) = gui_rx.blocking_recv() {
             let next_snapshot = {
-                let mut current = snapshot.lock().unwrap();
+                let mut current = snapshot
+                    .lock()
+                    .unwrap_or_else(|e| e.into_inner());
                 apply_gui_command(&mut current, cmd);
                 current.clone()
             };
@@ -523,8 +538,9 @@ fn first_line(text: &str) -> String {
         .map(str::trim)
         .filter(|line| !line.is_empty())
         .map(|line| {
-            if line.len() > 72 {
-                format!("{}...", &line[..69])
+            if line.chars().count() > 72 {
+                let truncated: String = line.chars().take(69).collect();
+                format!("{}...", truncated)
             } else {
                 line.to_string()
             }

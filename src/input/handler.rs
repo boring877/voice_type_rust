@@ -370,8 +370,8 @@ fn type_via_clipboard(text: &str, leave_in_clipboard: bool) -> Result<()> {
     let paste_result = simulate_key_combination(&[Key::ControlLeft, Key::KeyV]);
 
     if !leave_in_clipboard {
-        // Restore old clipboard content
-        std::thread::sleep(std::time::Duration::from_millis(50));
+        // Restore old clipboard content after paste has had time to land
+        std::thread::sleep(std::time::Duration::from_millis(200));
         let _ = arboard::Clipboard::new().and_then(|mut cb| cb.set_text(old_clipboard));
     }
 
@@ -421,18 +421,6 @@ fn send_char(c: char) -> Result<(), SimulateError> {
     };
     simulate(&release_event)?;
 
-    Ok(())
-}
-
-/// Press the Escape key
-///
-/// Useful for closing menus before typing.
-#[allow(dead_code)]
-pub fn press_escape() -> Result<()> {
-    simulate(&EventType::KeyPress(Key::Escape))
-        .map_err(|e| anyhow::anyhow!("Failed to press escape: {:?}", e))?;
-    simulate(&EventType::KeyRelease(Key::Escape))
-        .map_err(|e| anyhow::anyhow!("Failed to release escape: {:?}", e))?;
     Ok(())
 }
 

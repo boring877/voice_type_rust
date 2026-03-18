@@ -30,7 +30,7 @@ impl InputBinding {
                 Button::Middle => "Mouse Middle".to_string(),
                 Button::Unknown(1) => "Mouse Button 4".to_string(),
                 Button::Unknown(2) => "Mouse Button 5".to_string(),
-                Button::Unknown(code) => format!("Mouse Button {}", code),
+                Button::Unknown(code) => format!("Mouse Button {}", code + 2),
             },
         }
     }
@@ -313,10 +313,13 @@ impl HotkeyState {
 
     /// Get the current target binding.
     pub fn get_target_binding(&self) -> InputBinding {
-        self.target_binding
+        let guard = self.target_binding
             .lock()
-            .map(|binding| *binding)
-            .unwrap_or(InputBinding::Key(Key::ShiftLeft))
+            .unwrap_or_else(|e| {
+                tracing::error!("Hotkey target binding mutex poisoned: {}", e);
+                e.into_inner()
+            });
+        *guard
     }
 
     /// Update the configured push-to-talk binding at runtime.

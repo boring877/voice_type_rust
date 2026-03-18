@@ -52,19 +52,19 @@ pub fn get_device(index: Option<usize>) -> Result<cpal::Device> {
 ///
 /// Uses the device's default config. The audio will be resampled
 /// to 16kHz if the device uses a different sample rate.
-pub fn build_config(device: &cpal::Device) -> Result<(cpal::StreamConfig, u32)> {
+pub fn build_config(
+    device: &cpal::Device,
+) -> Result<(cpal::StreamConfig, cpal::SampleFormat, u32)> {
     let supported = device
         .default_input_config()
         .context("Failed to get default input config")?;
 
     tracing::info!("Default input config: {:?}", supported);
 
-    // Use the device's default config (don't force 16kHz)
-    // We'll handle resampling if needed
     let config: cpal::StreamConfig = supported.config();
     let actual_sample_rate = config.sample_rate.0;
 
-    Ok((config, actual_sample_rate))
+    Ok((config, supported.sample_format(), actual_sample_rate))
 }
 
 /// Record audio while the predicate returns true
@@ -92,7 +92,7 @@ where
     tracing::info!("Using input device: {:?}", device.name());
 
     // Build stream configuration
-    let (config, actual_sample_rate) = build_config(&device)?;
+    let (config, sample_format, actual_sample_rate) = build_config(&device)?;
     tracing::info!(
         "Stream config: {:?}, actual sample rate: {}, channels: {}",
         config,
@@ -105,7 +105,7 @@ where
     let state_clone = Arc::clone(&state);
 
     // Build the audio stream
-    let stream = build_stream(&device, &config, state_clone, level_tx)?;
+    let stream = build_stream(&device, &config, sample_format, state_clone, level_tx)?;
 
     // Start recording
     stream.play().context("Failed to start audio stream")?;
@@ -165,14 +165,10 @@ where
 pub fn build_stream(
     device: &cpal::Device,
     config: &cpal::StreamConfig,
+    sample_format: cpal::SampleFormat,
     state: Arc<RecordingState>,
     level_tx: mpsc::Sender<f32>,
 ) -> Result<cpal::Stream> {
-    let sample_format = device
-        .default_input_config()
-        .context("Failed to get default config")?
-        .sample_format();
-
     let channels = config.channels as usize;
 
     match sample_format {

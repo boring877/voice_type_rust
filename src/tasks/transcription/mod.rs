@@ -6,7 +6,7 @@ mod processing;
 mod request;
 
 use std::sync::Arc;
-
+use anyhow;
 use tokio::sync::{Mutex, mpsc};
 use tracing::{error, info, warn};
 
@@ -87,7 +87,12 @@ pub async fn transcription_task(
                     let _ = gui_tx.try_send(GuiCommand::SetState(AppState::Done));
 
                     let leave_in_clipboard = app_state.lock().await.config.auto_copy;
-                    if let Err(e) = type_text(&final_text, leave_in_clipboard) {
+                    let final_text_clone = final_text.clone();
+                    let type_result = tokio::task::spawn_blocking(move || {
+                        type_text(&final_text_clone, leave_in_clipboard)
+                    })
+                    .await;
+                    if let Err(e) = type_result.unwrap_or_else(|e| Err(anyhow::anyhow!("Task join error: {}", e))) {
                         error!("Failed to type text: {}", e);
                     }
                 } else {

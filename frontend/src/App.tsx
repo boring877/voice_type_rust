@@ -12,12 +12,9 @@ import { configsEqual, parseFilterWords } from "./lib/config";
 import { getBrowserKeyboardCode, getBrowserMouseButton } from "./lib/hotkeys";
 import { fallbackConfig, fallbackInfo, fallbackRuntime } from "./lib/options";
 import {
-  AppearanceSection,
-  CaptureSection,
-  CleanupSection,
-  FeaturesSection,
-  StyleSection,
-  VoiceSection
+  AdvancedSection,
+  SettingsSection,
+  SetupSection
 } from "./components/sections";
 import { HudStageSection } from "./components/HudStageSection";
 import type { AppInfo, Config, HotkeyCapturePayload, RuntimeSnapshot } from "./types";
@@ -35,9 +32,10 @@ export default function App() {
   const [autosaving, setAutosaving] = useState(false);
   const [capturingHotkey, setCapturingHotkey] = useState(false);
   const [captureMessage, setCaptureMessage] = useState(
-    "Press record to capture a keyboard key or mouse button."
+    "Press the key or button you want to use."
   );
   const [error, setError] = useState<string | null>(null);
+  const [advancedExpanded, setAdvancedExpanded] = useState(false);
 
   const configRef = useRef(config);
   const savedConfigRef = useRef(savedConfig);
@@ -487,11 +485,6 @@ export default function App() {
               onUpdate={update}
               runtime={runtime}
             />
-
-            <StyleSection
-              config={config}
-              onUpdate={update}
-            />
           </div>
         </section>
 
@@ -500,42 +493,43 @@ export default function App() {
             {error ? <p className="error-text">{error}</p> : null}
             {loading ? <div className="loading-banner">Loading...</div> : null}
 
-            <AppearanceSection
-              backgroundMode={backgroundMode}
+            <SetupSection
               config={config}
-              onPickBackgroundImage={pickBackgroundImage}
-              onResetAppearance={resetAppearance}
-              onUpdate={update}
-              theme={theme}
-            />
-
-            <VoiceSection
-              config={config}
-              onOpenApiKeyPage={openApiKeyPage}
-              onUpdate={update}
-            />
-
-            <CaptureSection
-              captureMessage={captureMessage}
-              capturingHotkey={capturingHotkey}
-              config={config}
-              hotkeyLabel={hotkeyLabel}
               micNames={micNames}
+              hotkeyLabel={hotkeyLabel}
+              capturingHotkey={capturingHotkey}
+              captureMessage={captureMessage}
+              onUpdate={update}
               onStartHotkeyCapture={startHotkeyCapture}
               onStopHotkeyCapture={stopHotkeyCapture}
-              onUpdate={update}
+              onOpenApiKeyPage={openApiKeyPage}
             />
 
-            <FeaturesSection
-              config={config}
-              onUpdate={update}
-            />
-
-            <CleanupSection
+            <SettingsSection
               config={config}
               filterWordsText={filterWordsText}
               onUpdate={update}
               onUpdateFilterWords={updateFilterWords}
+            />
+
+            <button
+              className={`expand-button${advancedExpanded ? " expanded" : ""}`}
+              onClick={() => setAdvancedExpanded((v) => !v)}
+              type="button"
+            >
+              <span>{advancedExpanded ? "Hide" : "Show"} advanced settings</span>
+              <span className="expand-arrow">{advancedExpanded ? "\u25B2" : "\u25BC"}</span>
+            </button>
+
+            <AdvancedSection
+              backgroundMode={backgroundMode}
+              config={config}
+              expanded={advancedExpanded}
+              onPickBackgroundImage={pickBackgroundImage}
+              onResetAppearance={resetAppearance}
+              onToggle={() => setAdvancedExpanded((v) => !v)}
+              onUpdate={update}
+              theme={theme}
             />
           </div>
         </aside>

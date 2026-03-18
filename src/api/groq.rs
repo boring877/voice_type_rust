@@ -6,26 +6,32 @@ use anyhow::{Context, Result};
 use async_trait::async_trait;
 // `reqwest` is the HTTP client used to call the transcription API.
 use reqwest::multipart::{Form, Part};
+use std::sync::OnceLock;
 
 use crate::api::constants::{GROQ_API_URL, REQUEST_TIMEOUT, WHISPER_MODEL, WHISPER_MODEL_LITE};
 use crate::api::provider::TranscriptionProvider;
 use crate::types::api::TranscriptionOptions;
 
-/// Groq Whisper API provider.
-pub struct GroqProvider {
-    client: reqwest::Client,
+static HTTP_CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+
+fn client() -> Result<&'static reqwest::Client> {
+    if let Some(existing) = HTTP_CLIENT.get() {
+        return Ok(existing);
+    }
+
+    let built = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(REQUEST_TIMEOUT))
+        .build()
+        .context("Failed to build HTTP client")?;
+
+    let _ = HTTP_CLIENT.set(built);
+    HTTP_CLIENT
+        .get()
+        .context("HTTP client initialization failed")
 }
 
-impl GroqProvider {
-    /// Build provider with a reusable HTTP client.
-    pub fn new() -> Result<Self> {
-        let client = reqwest::Client::builder()
-            .timeout(std::time::Duration::from_secs(REQUEST_TIMEOUT))
-            .build()
-            .context("Failed to build HTTP client")?;
-        Ok(Self { client })
-    }
-}
+/// Groq Whisper API provider.
+pub struct GroqProvider;
 
 #[async_trait]
 impl TranscriptionProvider for GroqProvider {
@@ -34,7 +40,8 @@ impl TranscriptionProvider for GroqProvider {
         audio_bytes: Vec<u8>,
         options: &TranscriptionOptions,
     ) -> Result<String> {
-        transcribe_with_client(&self.client, audio_bytes, options).await
+        let c = client()?;
+        transcribe_with_client(c, audio_bytes, options).await
     }
 }
 

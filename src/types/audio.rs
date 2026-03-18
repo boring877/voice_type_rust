@@ -5,6 +5,8 @@
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+use crate::audio::SAMPLE_RATE;
+
 /// Audio recording state
 ///
 /// Shared between the audio callback and the control logic.
@@ -22,7 +24,7 @@ impl RecordingState {
     pub fn new() -> Self {
         Self {
             running: AtomicBool::new(true),
-            samples: Mutex::new(Vec::new()),
+            samples: Mutex::new(Vec::with_capacity(SAMPLE_RATE as usize * 60)),
         }
     }
 

@@ -101,6 +101,13 @@ pub async fn audio_recording_task(
             }
             Err(e) => {
                 error!("Recording task panicked: {}", e);
+
+                let _ = gui_tx
+                    .try_send(GuiCommand::SetStatus(format!("Recording crashed: {}", e)));
+                let _ = gui_tx.try_send(GuiCommand::SetState(AppState::Error));
+
+                tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+                let _ = gui_tx.try_send(GuiCommand::SetState(AppState::Ready));
             }
         }
 
