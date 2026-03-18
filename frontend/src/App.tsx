@@ -35,7 +35,7 @@ export default function App() {
     "Press the key or button you want to use."
   );
   const [error, setError] = useState<string | null>(null);
-  const [advancedExpanded, setAdvancedExpanded] = useState(false);
+  const [advancedMode, setAdvancedMode] = useState(false);
 
   const configRef = useRef(config);
   const savedConfigRef = useRef(savedConfig);
@@ -478,13 +478,15 @@ export default function App() {
           </div>
 
           <div className="stage-focus">
-            <HudStageSection
-              backgroundUrl={hudBackgroundUrl}
-              config={config}
-              onPickHudBackgroundImage={pickHudBackgroundImage}
-              onUpdate={update}
-              runtime={runtime}
-            />
+            {advancedMode && (
+              <HudStageSection
+                backgroundUrl={hudBackgroundUrl}
+                config={config}
+                onPickHudBackgroundImage={pickHudBackgroundImage}
+                onUpdate={update}
+                runtime={runtime}
+              />
+            )}
           </div>
         </section>
 
@@ -492,6 +494,23 @@ export default function App() {
           <div className="dock-scroll">
             {error ? <p className="error-text">{error}</p> : null}
             {loading ? <div className="loading-banner">Loading...</div> : null}
+
+            <div className="mode-toggle-row">
+              <button
+                className={!advancedMode ? "mode-pill active" : "mode-pill"}
+                onClick={() => setAdvancedMode(false)}
+                type="button"
+              >
+                Normal
+              </button>
+              <button
+                className={advancedMode ? "mode-pill active" : "mode-pill"}
+                onClick={() => setAdvancedMode(true)}
+                type="button"
+              >
+                Advanced
+              </button>
+            </div>
 
             <SetupSection
               config={config}
@@ -512,25 +531,18 @@ export default function App() {
               onUpdateFilterWords={updateFilterWords}
             />
 
-            <button
-              className={`expand-button${advancedExpanded ? " expanded" : ""}`}
-              onClick={() => setAdvancedExpanded((v) => !v)}
-              type="button"
-            >
-              <span>{advancedExpanded ? "Hide" : "Show"} advanced settings</span>
-              <span className="expand-arrow">{advancedExpanded ? "\u25B2" : "\u25BC"}</span>
-            </button>
-
-            <AdvancedSection
-              backgroundMode={backgroundMode}
-              config={config}
-              expanded={advancedExpanded}
-              onPickBackgroundImage={pickBackgroundImage}
-              onResetAppearance={resetAppearance}
-              onToggle={() => setAdvancedExpanded((v) => !v)}
-              onUpdate={update}
-              theme={theme}
-            />
+            {advancedMode && (
+              <AdvancedSection
+                backgroundMode={backgroundMode}
+                config={config}
+                expanded={true}
+                onPickBackgroundImage={pickBackgroundImage}
+                onResetAppearance={resetAppearance}
+                onToggle={() => {}}
+                onUpdate={update}
+                theme={theme}
+              />
+            )}
           </div>
         </aside>
       </main>
