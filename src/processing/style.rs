@@ -18,11 +18,48 @@ enum StyleMood {
 }
 
 /// Check if a style requires LLM rewriting (async).
-pub fn needs_llm(style: &str) -> bool {
-    matches!(style, STYLE_AGENT)
+pub fn needs_llm(_style: &str) -> bool {
+    false
 }
 
-/// Apply a local (non-LLM) style preset synchronously. Returns None for LLM styles.
+fn agent_rewrite(text: &str) -> String {
+    let mut context = String::new();
+    let mut task = String::new();
+    let mut constraints = String::new();
+
+    for line in text.lines() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        if task.is_empty() {
+            task.push_str(line);
+        } else {
+            context.push_str(line);
+            context.push(' ');
+        }
+    }
+
+    if task.is_empty() {
+        return text.to_string();
+    }
+
+    let mut result = format!("<task>\n{}\n</task>\n", task.trim_end());
+
+    if !context.trim().is_empty() {
+        result.push_str(&format!("<context>\n{}\n</context>\n", context.trim_end()));
+    }
+
+    if !constraints.is_empty() {
+        result.push_str(&format!("<constraints>\n{}\n</constraints>\n", constraints));
+    }
+
+    result.push_str("<output_format>\nProvide a direct, concise response.\n</output_format>");
+
+    result
+}
+
+/// Apply a local style preset synchronously.
 pub fn apply_local_style(text: &str, style: &str, language: &str) -> Option<String> {
     let trimmed = text.trim();
     if trimmed.is_empty() {
@@ -38,8 +75,9 @@ pub fn apply_local_style(text: &str, style: &str, language: &str) -> Option<Stri
             let mood = detect_style_mood(trimmed, language);
             Some(format!("{} {}", trimmed, niko_expression(trimmed, mood)))
         }
+        STYLE_AGENT => Some(agent_rewrite(trimmed)),
         STYLE_NONE => Some(trimmed.to_string()),
-        _ => None,
+        _ => Some(trimmed.to_string()),
     }
 }
 
@@ -291,17 +329,32 @@ mod tests {
     }
 
     #[test]
-    fn test_llm_styles_return_none_from_local() {
-        assert!(apply_local_style("hello", STYLE_AGENT, "en").is_none());
-        assert!(apply_local_style("hello", "linkedin", "en").is_none());
+    fn test_agent_style_wraps_in_xml_template() {
+        let result = apply_local_style("fix the login bug on the auth page", STYLE_AGENT, "en").unwrap();
+        assert!(result.contains("<task>"));
+        assert!(result.contains("fix the login bug"));
+        assert!(result.contains("</task>"));
+        assert!(result.contains("<output_format>"));
     }
 
     #[test]
-    fn test_needs_llm() {
-        assert!(needs_llm(STYLE_AGENT));
+    fn test_agent_style_splits_task_and_context() {
+        let result = apply_local_style(
+            "fix the login bug\nthe auth page crashes when you click login with an empty password field",
+            STYLE_AGENT,
+            "en",
+        )
+        .unwrap();
+        assert!(result.contains("<task>\nfix the login bug\n</task>"));
+        assert!(result.contains("<context>\n"));
+        assert!(result.contains("</context>"));
+    }
+
+    #[test]
+    fn test_needs_llm_is_always_false() {
+        assert!(!needs_llm(STYLE_AGENT));
         assert!(!needs_llm(STYLE_NONE));
         assert!(!needs_llm(STYLE_JAPANESE_EMOJIS));
-        assert!(!needs_llm(STYLE_NIKO));
         assert!(!needs_llm("unknown_style"));
     }
 }

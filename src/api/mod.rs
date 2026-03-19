@@ -14,5 +14,5 @@ mod provider;
 
 // Re-export provider API
 pub use crate::types::api::Provider;
-pub use groq::{rewrite_with_llm, test_api_key};
+pub use groq::test_api_key;
 pub use provider::transcribe;
