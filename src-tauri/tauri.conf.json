@@ -31,7 +31,7 @@
           "$HOME/Library/Application Support/voice-type/backgrounds/**"
         ]
       },
-      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost; style-src 'self' 'unsafe-inline'"
+      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost data: blob:; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost"
     }
   },
   "bundle": {
