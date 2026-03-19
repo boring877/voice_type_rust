@@ -179,20 +179,6 @@ pub async fn test_api_key(api_key: &str) -> Result<()> {
 
 fn style_system_prompt(style: &str) -> &'static str {
     match style {
-        "linkedin" => "You rewrite casual speech into a LinkedIn-style post. \
-            RULES: \
-            - MAX 2 sentences total. Never more. \
-            - No filler, no generic wisdom, no vague statements. \
-            - Every sentence must reference something specific from the input. \
-            - Use 1-2 corporate buzzwords at most. \
-            - End with a short question if appropriate, but the whole thing stays under 2 sentences. \
-            - Never repeat phrases across outputs. Be fresh every time. \
-            Output ONLY the rewritten text, nothing else.",
-        "lawyer" => "You rewrite casual speech into formal legalese, as if spoken by a lawyer. \
-            Use legal terminology, formal phrasing, and authoritative tone. \
-            Vary your word choice — never use the same phrasing twice. \
-            Keep the same meaning. Keep it SHORT — 2-3 sentences max. No long paragraphs. \
-            Output ONLY the rewritten text, nothing else.",
         "agent" => "You restructure casual spoken text into a clear, well-structured prompt \
             designed to be given to an AI agent or coding assistant. \
             Apply these principles: \

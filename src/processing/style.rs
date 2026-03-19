@@ -5,8 +5,6 @@ const STYLE_NONE: &str = "none";
 const STYLE_JAPANESE_EMOJIS: &str = "japanese_emojis";
 const STYLE_JAPANESE_OMG_LEGACY: &str = "japanese_omg";
 const STYLE_NIKO: &str = "niko_style";
-const STYLE_LINKEDIN: &str = "linkedin";
-const STYLE_LAWYER: &str = "lawyer";
 const STYLE_AGENT: &str = "agent";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -21,7 +19,7 @@ enum StyleMood {
 
 /// Check if a style requires LLM rewriting (async).
 pub fn needs_llm(style: &str) -> bool {
-    matches!(style, STYLE_LINKEDIN | STYLE_LAWYER | STYLE_AGENT)
+    matches!(style, STYLE_AGENT)
 }
 
 /// Apply a local (non-LLM) style preset synchronously. Returns None for LLM styles.
@@ -294,14 +292,13 @@ mod tests {
 
     #[test]
     fn test_llm_styles_return_none_from_local() {
-        assert!(apply_local_style("hello", STYLE_LINKEDIN, "en").is_none());
-        assert!(apply_local_style("hello", STYLE_LAWYER, "en").is_none());
+        assert!(apply_local_style("hello", STYLE_AGENT, "en").is_none());
+        assert!(apply_local_style("hello", "linkedin", "en").is_none());
     }
 
     #[test]
     fn test_needs_llm() {
-        assert!(needs_llm(STYLE_LINKEDIN));
-        assert!(needs_llm(STYLE_LAWYER));
+        assert!(needs_llm(STYLE_AGENT));
         assert!(!needs_llm(STYLE_NONE));
         assert!(!needs_llm(STYLE_JAPANESE_EMOJIS));
         assert!(!needs_llm(STYLE_NIKO));
