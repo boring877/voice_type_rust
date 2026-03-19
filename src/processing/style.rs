@@ -17,15 +17,10 @@ enum StyleMood {
     Calm,
 }
 
-/// Check if a style requires LLM rewriting (async).
-pub fn needs_llm(_style: &str) -> bool {
-    false
-}
-
 fn agent_rewrite(text: &str) -> String {
     let mut context = String::new();
     let mut task = String::new();
-    let mut constraints = String::new();
+    let constraints = String::new();
 
     for line in text.lines() {
         let line = line.trim();
@@ -348,13 +343,5 @@ mod tests {
         assert!(result.contains("<task>\nfix the login bug\n</task>"));
         assert!(result.contains("<context>\n"));
         assert!(result.contains("</context>"));
-    }
-
-    #[test]
-    fn test_needs_llm_is_always_false() {
-        assert!(!needs_llm(STYLE_AGENT));
-        assert!(!needs_llm(STYLE_NONE));
-        assert!(!needs_llm(STYLE_JAPANESE_EMOJIS));
-        assert!(!needs_llm("unknown_style"));
     }
 }

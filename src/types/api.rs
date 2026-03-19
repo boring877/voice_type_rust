@@ -4,7 +4,6 @@
 
 use serde::Deserialize;
 
-use crate::api::constants::TRANSCRIPTION_MODEL_TURBO;
 use crate::config::{DEFAULT_LANGUAGE, PROVIDER_GROQ};
 
 /// Transcription request options
