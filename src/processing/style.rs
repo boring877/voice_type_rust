@@ -18,212 +18,30 @@ enum StyleMood {
     Calm,
 }
 
-pub fn apply_style_preset(text: &str, style: &str, language: &str) -> String {
+/// Check if a style requires LLM rewriting (async).
+pub fn needs_llm(style: &str) -> bool {
+    matches!(style, STYLE_LINKEDIN | STYLE_LAWYER)
+}
+
+/// Apply a local (non-LLM) style preset synchronously. Returns None for LLM styles.
+pub fn apply_local_style(text: &str, style: &str, language: &str) -> Option<String> {
     let trimmed = text.trim();
     if trimmed.is_empty() {
-        return String::new();
+        return Some(String::new());
     }
 
     match style {
         STYLE_JAPANESE_EMOJIS | STYLE_JAPANESE_OMG_LEGACY => {
             let mood = detect_style_mood(trimmed, language);
-            format!("{} {}", trimmed, japanese_expression(trimmed, mood))
+            Some(format!("{} {}", trimmed, japanese_expression(trimmed, mood)))
         }
         STYLE_NIKO => {
             let mood = detect_style_mood(trimmed, language);
-            format!("{} {}", trimmed, niko_expression(trimmed, mood))
+            Some(format!("{} {}", trimmed, niko_expression(trimmed, mood)))
         }
-        STYLE_LINKEDIN => linkedin_rewrite(trimmed),
-        STYLE_LAWYER => lawyer_rewrite(trimmed),
-        STYLE_NONE | _ => trimmed.to_string(),
+        STYLE_NONE => Some(trimmed.to_string()),
+        _ => None,
     }
-}
-
-fn linkedin_rewrite(text: &str) -> String {
-    let replacements: &[(&str, &str)] = &[
-        ("good", "impactful"),
-        ("bad", "challenging"),
-        ("helped", "empowered"),
-        ("made", "delivered"),
-        ("showed", "demonstrated"),
-        ("learned", "discovered"),
-        ("did", "executed"),
-        ("worked on", "spearheaded"),
-        ("tried", "explored"),
-        ("used", "leveraged"),
-        ("asked", "consulted with"),
-        ("told", "aligned with"),
-        ("got", "secured"),
-        ("want", "aspire to"),
-        ("think", "believe"),
-        ("nice", "noteworthy"),
-        ("hard", "rigorous"),
-        ("big", "significant"),
-        ("small", "focused"),
-        ("fast", "agile"),
-        ("start", "initiate"),
-        ("finish", "finalize"),
-        ("team", "cross-functional team"),
-        ("idea", "strategic initiative"),
-        ("plan", "roadmap"),
-        ("meeting", "alignment session"),
-        ("boss", "stakeholder"),
-        ("problem", "opportunity"),
-        ("fix", "address"),
-        ("change", "transformation"),
-        ("update", "iterate on"),
-        ("share", "broadcast"),
-        ("grow", "scale"),
-        ("build", "architect"),
-    ];
-
-    let mut result = text.to_string();
-    for (casual, corporate) in replacements {
-        if let Some(idx) = result.to_ascii_lowercase().find(casual) {
-            let after_word = idx + casual.len();
-            let is_word_boundary = |i: usize| {
-                i >= result.len() || !result.as_bytes()[i].is_ascii_alphanumeric()
-            };
-            let before_ok = idx == 0 || !result.as_bytes()[idx.saturating_sub(1)].is_ascii_alphanumeric();
-            if before_ok && is_word_boundary(after_word) {
-                result = format!("{}{}{}", &result[..idx], corporate, &result[after_word..]);
-            }
-        }
-    }
-
-    let openers = &[
-        "Here's the thing:\n\n",
-        "I never expected this, but:\n\n",
-        "After deep reflection:\n\n",
-        "Let me share something:\n\n",
-    ];
-    let opener = stable_pick(&result, openers);
-
-    let closers = &[
-        "\n\nThoughts?",
-        "\n\nAgree? Disagree? Let me know.",
-        "\n\nWhat's your take?",
-        "\n\nWould love to hear your perspective.",
-    ];
-    let closer = stable_pick(&result, closers);
-
-    format!("{}{}{}", opener, result, closer)
-}
-
-fn lawyer_rewrite(text: &str) -> String {
-    let replacements: &[(&str, &str)] = &[
-        ("i think", "it is my professional opinion that"),
-        ("i believe", "it is my contention that"),
-        ("i want", "I would like to formally request"),
-        ("i need", "I require"),
-        ("i said", "I stated"),
-        ("i told", "I informed"),
-        ("i asked", "I inquired"),
-        ("maybe", "it is conceivable that"),
-        ("probably", "in all likelihood"),
-        ("definitely", "without a shadow of a doubt"),
-        ("actually", "in point of fact"),
-        ("basically", "fundamentally"),
-        ("honestly", "candidly speaking"),
-        ("obviously", "it is self-evident that"),
-        ("clearly", "it is abundantly clear that"),
-        ("very", "exceedingly"),
-        ("really", "genuinely"),
-        ("just", "merely"),
-        ("also", "furthermore"),
-        ("but", "however"),
-        ("so", "therefore"),
-        ("now", "at this juncture"),
-        ("sorry", "I extend my sincere apologies"),
-        ("please", "kindly"),
-        ("help", "render assistance"),
-        ("wrong", "factually incorrect"),
-        ("right", "legally sound"),
-        ("true", "accurate to the best of my knowledge"),
-        ("fake", "fraudulent and without merit"),
-        ("lie", "a willful misrepresentation of the facts"),
-        ("agree", "concur"),
-        ("disagree", "respectfully dissent"),
-        ("promise", "hereby commit"),
-        ("pay", "remit compensation"),
-        ("cost", "financial obligation"),
-        ("price", "stipulated fee"),
-        ("buy", "acquire"),
-        ("sell", "divest"),
-        ("sign", "execute"),
-        ("rule", "binding provision"),
-        ("law", "applicable statute"),
-        ("contract", "binding agreement"),
-        ("deal", "arrangement"),
-        ("problem", "matter requiring resolution"),
-        ("fix", "remedy"),
-        ("issue", "contentious matter"),
-        ("question", "line of inquiry"),
-        ("answer", "response"),
-        ("talk", "confer"),
-        ("meeting", "formal proceeding"),
-        ("plan", "proposed course of action"),
-        ("idea", "proposed framework"),
-        ("decide", "determine"),
-        ("choose", "elect"),
-        ("stop", "cease and desist"),
-        ("start", "commence"),
-        ("end", "conclude"),
-        ("wait", "stand adjourned"),
-        ("give", "provide"),
-        ("take", "assume possession of"),
-        ("use", "utilize"),
-        ("try", "make a good-faith effort to"),
-        ("fail", "fall short of expectations"),
-        ("win", "prevail"),
-        ("lose", "suffer an adverse outcome"),
-    ];
-
-    let mut result = text.to_string();
-    for (casual, legal) in replacements {
-        let lower = result.to_ascii_lowercase();
-        if let Some(idx) = lower.find(casual) {
-            let after_word = idx + casual.len();
-            let is_word_boundary = |i: usize| {
-                i >= result.len() || !result.as_bytes()[i].is_ascii_alphanumeric()
-            };
-            let before_ok =
-                idx == 0 || !result.as_bytes()[idx.saturating_sub(1)].is_ascii_alphanumeric();
-            if before_ok && is_word_boundary(after_word) {
-                let original_casing = &result[idx..after_word];
-                let replacement = if original_casing.starts_with(char::is_uppercase)
-                    && legal.starts_with(char::is_lowercase)
-                {
-                    let (first, rest) = legal.split_at(1);
-                    let mut capped = String::with_capacity(legal.len());
-                    capped.extend(first.to_uppercase().chars());
-                    capped.push_str(rest);
-                    capped
-                } else {
-                    legal.to_string()
-                };
-                result = format!("{}{}{}", &result[..idx], replacement, &result[after_word..]);
-            }
-        }
-    }
-
-    let openers = &[
-        "Pursuant to the matter at hand:\n\n",
-        "Be it known that:\n\n",
-        "In consideration of the foregoing:\n\n",
-        "Having reviewed the relevant facts:\n\n",
-    ];
-    let opener = stable_pick(&result, openers);
-
-    let closers = &[
-        "\n\nRespectfully submitted.",
-        "\n\nI rest my case.",
-        "\n\nThis concludes my statement on the matter.",
-        "\n\nSo advised.",
-    ];
-    let closer = stable_pick(&result, closers);
-
-    format!("{}{}{}", opener, result, closer)
 }
 
 fn ascii_lower_words(text: &str) -> Vec<String> {
@@ -359,9 +177,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_apply_style_preset_uses_japanese_expression_pool() {
-        let cheerful = apply_style_preset("We did it!", STYLE_JAPANESE_EMOJIS, "en");
-        let curious = apply_style_preset("Are you there?", STYLE_JAPANESE_EMOJIS, "en");
+    fn test_apply_local_style_uses_japanese_expression_pool() {
+        let cheerful = apply_local_style("We did it!", STYLE_JAPANESE_EMOJIS, "en").unwrap();
+        let curious = apply_local_style("Are you there?", STYLE_JAPANESE_EMOJIS, "en").unwrap();
 
         assert!(
             [
@@ -379,13 +197,13 @@ mod tests {
             ]
             .contains(&curious.as_str())
         );
-        assert_eq!(apply_style_preset("hello", STYLE_NONE, "en"), "hello");
+        assert_eq!(apply_local_style("hello", STYLE_NONE, "en").unwrap(), "hello");
     }
 
     #[test]
-    fn test_apply_style_preset_uses_niko_expression_pool() {
-        let cheerful = apply_style_preset("We did it!", STYLE_NIKO, "en");
-        let curious = apply_style_preset("Are you there?", STYLE_NIKO, "en");
+    fn test_apply_local_style_uses_niko_expression_pool() {
+        let cheerful = apply_local_style("We did it!", STYLE_NIKO, "en").unwrap();
+        let curious = apply_local_style("Are you there?", STYLE_NIKO, "en").unwrap();
 
         assert!(
             [
@@ -406,9 +224,9 @@ mod tests {
     }
 
     #[test]
-    fn test_apply_style_preset_uses_exact_english_word_matching() {
-        let calm = apply_style_preset("Madeline is here", STYLE_JAPANESE_EMOJIS, "en");
-        let also_calm = apply_style_preset("whatsoever", STYLE_JAPANESE_EMOJIS, "en");
+    fn test_apply_local_style_uses_exact_english_word_matching() {
+        let calm = apply_local_style("Madeline is here", STYLE_JAPANESE_EMOJIS, "en").unwrap();
+        let also_calm = apply_local_style("whatsoever", STYLE_JAPANESE_EMOJIS, "en").unwrap();
 
         assert!(
             [
@@ -429,9 +247,9 @@ mod tests {
     }
 
     #[test]
-    fn test_apply_style_preset_uses_punctuation_for_non_english_languages() {
-        let cheerful = apply_style_preset("Hola!", STYLE_JAPANESE_EMOJIS, "es");
-        let calm = apply_style_preset("I am angry about this", STYLE_JAPANESE_EMOJIS, "ja");
+    fn test_apply_local_style_uses_punctuation_for_non_english_languages() {
+        let cheerful = apply_local_style("Hola!", STYLE_JAPANESE_EMOJIS, "es").unwrap();
+        let calm = apply_local_style("I am angry about this", STYLE_JAPANESE_EMOJIS, "ja").unwrap();
 
         assert!(
             ["Hola! (^_^)", "Hola! (≧▽≦)", "Hola! (ﾉ´ヮ`)ﾉ*: ･ﾟ"]
@@ -448,9 +266,9 @@ mod tests {
     }
 
     #[test]
-    fn test_apply_style_preset_uses_multiple_japanese_moods() {
-        let cheerful = apply_style_preset("We did it!", STYLE_JAPANESE_EMOJIS, "en");
-        let angry = apply_style_preset("I am angry about this", STYLE_JAPANESE_EMOJIS, "en");
+    fn test_apply_local_style_uses_multiple_japanese_moods() {
+        let cheerful = apply_local_style("We did it!", STYLE_JAPANESE_EMOJIS, "en").unwrap();
+        let angry = apply_local_style("I am angry about this", STYLE_JAPANESE_EMOJIS, "en").unwrap();
 
         assert!(
             ["(^_^)", "(≧▽≦)", "(ﾉ´ヮ`)ﾉ*: ･ﾟ"]
@@ -465,69 +283,27 @@ mod tests {
     }
 
     #[test]
-    fn test_apply_style_preset_uses_niko_cat_moods() {
-        let calm = apply_style_preset("hello", STYLE_NIKO, "en");
-        let curious = apply_style_preset("what is this?", STYLE_NIKO, "en");
+    fn test_apply_local_style_uses_niko_cat_moods() {
+        let calm = apply_local_style("hello", STYLE_NIKO, "en").unwrap();
+        let curious = apply_local_style("what is this?", STYLE_NIKO, "en").unwrap();
 
         assert!(calm.contains(" nya "));
         assert!(curious.contains(" nya? "));
     }
 
     #[test]
-    fn test_linkedin_style_replaces_casual_words() {
-        let result = apply_style_preset("I made a good plan for the team", STYLE_LINKEDIN, "en");
-        assert!(result.contains("impactful"));
-        assert!(result.contains("roadmap"));
-        assert!(result.contains("cross-functional team"));
+    fn test_llm_styles_return_none_from_local() {
+        assert!(apply_local_style("hello", STYLE_LINKEDIN, "en").is_none());
+        assert!(apply_local_style("hello", STYLE_LAWYER, "en").is_none());
     }
 
     #[test]
-    fn test_linkedin_style_adds_opener_and_closer() {
-        let result = apply_style_preset("I think this is a good idea", STYLE_LINKEDIN, "en");
-        assert!(result.contains("believe"));
-        assert!(result.contains("strategic initiative"));
-        assert!(
-            result.contains("Thoughts?")
-                || result.contains("Let me know")
-                || result.contains("What's your take?")
-                || result.contains("your perspective")
-        );
-    }
-
-    #[test]
-    fn test_linkedin_style_preserves_non_matching_words() {
-        let result = apply_style_preset("Hello world", STYLE_LINKEDIN, "en");
-        assert!(result.contains("Hello"));
-        assert!(result.contains("world"));
-    }
-
-    #[test]
-    fn test_lawyer_style_replaces_casual_words() {
-        let result = apply_style_preset("I think this is wrong", STYLE_LAWYER, "en");
-        assert!(result.contains("professional opinion"));
-        assert!(result.contains("factually incorrect"));
-    }
-
-    #[test]
-    fn test_lawyer_style_adds_opener_and_closer() {
-        let result = apply_style_preset("I think maybe we should try", STYLE_LAWYER, "en");
-        assert!(
-            result.contains("Pursuant to")
-                || result.contains("Be it known")
-                || result.contains("In consideration")
-                || result.contains("Having reviewed")
-        );
-        assert!(
-            result.contains("Respectfully submitted")
-                || result.contains("rest my case")
-                || result.contains("concludes my statement")
-                || result.contains("So advised")
-        );
-    }
-
-    #[test]
-    fn test_lawyer_style_preserves_casing() {
-        let result = apply_style_preset("I Think this is true", STYLE_LAWYER, "en");
-        assert!(result.contains("It is my professional opinion"));
+    fn test_needs_llm() {
+        assert!(needs_llm(STYLE_LINKEDIN));
+        assert!(needs_llm(STYLE_LAWYER));
+        assert!(!needs_llm(STYLE_NONE));
+        assert!(!needs_llm(STYLE_JAPANESE_EMOJIS));
+        assert!(!needs_llm(STYLE_NIKO));
+        assert!(!needs_llm("unknown_style"));
     }
 }

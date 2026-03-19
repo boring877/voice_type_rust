@@ -176,3 +176,66 @@ pub async fn test_api_key(api_key: &str) -> Result<()> {
         anyhow::bail!("API key validation failed ({}): {}", status, body)
     }
 }
+
+fn style_system_prompt(style: &str) -> &'static str {
+    match style {
+        "linkedin" => "You rewrite casual speech into the style of a LinkedIn influencer post. \
+            Use corporate buzzwords, frame everything as a professional achievement or lesson, \
+            add reflective openers and engagement-seeking closers. Keep the same meaning. \
+            Output ONLY the rewritten text, nothing else.",
+        "lawyer" => "You rewrite casual speech into formal legalese, as if spoken by a lawyer. \
+            Use legal terminology, formal phrasing, and authoritative tone. \
+            Keep the same meaning. \
+            Output ONLY the rewritten text, nothing else.",
+        _ => "Rewrite the following text. Output ONLY the rewritten text, nothing else.",
+    }
+}
+
+/// Rewrite text using an LLM in the specified style.
+pub async fn rewrite_with_llm(api_key: &str, text: &str, style: &str) -> Result<String> {
+    let c = client()?;
+    let system_prompt = style_system_prompt(style);
+
+    let body = serde_json::json!({
+        "model": "llama-3.3-70b-versatile",
+        "messages": [
+            { "role": "system", "content": system_prompt },
+            { "role": "user", "content": text }
+        ],
+        "max_tokens": 512,
+        "temperature": 0.8
+    });
+
+    let response = c
+        .post(GROQ_CHAT_URL)
+        .header("Authorization", format!("Bearer {}", api_key))
+        .json(&body)
+        .send()
+        .await
+        .context("Failed to send style rewrite request")?;
+
+    let status = response.status();
+    let body = response
+        .text()
+        .await
+        .context("Failed to read style rewrite response")?;
+
+    if status.is_success() {
+        let parsed: serde_json::Value =
+            serde_json::from_str(&body).context("Failed to parse style rewrite response")?;
+        let rewritten = parsed
+            .get("choices")
+            .and_then(|c| c.get(0))
+            .and_then(|c| c.get("message"))
+            .and_then(|m| m.get("content"))
+            .and_then(|c| c.as_str())
+            .unwrap_or(text);
+        Ok(rewritten.trim().to_string())
+    } else {
+        let error: serde_json::Value =
+            serde_json::from_str(&body).unwrap_or_else(|_| serde_json::json!({ "message": body }));
+        let error_message = extract_error_message(&error, &body);
+        tracing::warn!("Style rewrite failed, using original text: {}", error_message);
+        Ok(text.to_string())
+    }
+}

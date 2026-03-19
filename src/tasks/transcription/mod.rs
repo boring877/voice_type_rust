@@ -12,7 +12,7 @@ use tracing::{error, info, warn};
 
 use crate::api::transcribe;
 use crate::input::type_text;
-use crate::processing::apply_style_preset;
+use crate::processing::{apply_local_style, needs_llm};
 use crate::types::{AppState, GuiCommand, STATUS_FILTERED, STATUS_NO_API_KEY, SharedState};
 use crate::history;
 
@@ -70,12 +70,28 @@ pub async fn transcription_task(
 
                 let processed = process_transcription(&text, &app_state).await;
                 if let Some(final_text) = processed {
-                    let (style, leave_in_clipboard) = {
+                    let (style, api_key, leave_in_clipboard) = {
                         let state = app_state.lock().await;
-                        (state.config.style.clone(), state.config.auto_copy)
+                        (
+                            state.config.style.clone(),
+                            state.config.resolved_api_key().unwrap_or_default(),
+                            state.config.auto_copy,
+                        )
                     };
-                    let final_text =
-                        apply_style_preset(&final_text, &style, &prepared.options.language);
+
+                    let final_text = if needs_llm(&style) {
+                        match crate::api::rewrite_with_llm(&api_key, &final_text, &style).await {
+                            Ok(rewritten) if !rewritten.is_empty() => rewritten,
+                            Ok(_) => final_text,
+                            Err(e) => {
+                                warn!("LLM style rewrite failed, using original: {}", e);
+                                final_text
+                            }
+                        }
+                    } else {
+                        apply_local_style(&final_text, &style, &prepared.options.language)
+                            .unwrap_or(final_text)
+                    };
 
                     let word_count = final_text.split_whitespace().count();
                     let status = format!("{}\n\n{} words", final_text, word_count);
