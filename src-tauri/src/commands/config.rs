@@ -1,6 +1,6 @@
 use crate::AppInfo;
 use crate::runtime::{RuntimeSnapshot, RuntimeState};
-use voice_type::api::test_api_key;
+use voice_type::api::test_api_key as validate_api_key;
 use voice_type::config;
 use voice_type::types::{AppState, Config, STATUS_API_KEY_EMPTY, STATUS_API_KEY_VALID};
 
@@ -62,7 +62,7 @@ pub async fn test_api_key(
 
     runtime.update_runtime_state(AppState::Processing, "Testing API key...");
 
-    test_api_key(&api_key)
+    validate_api_key(&api_key)
         .await
         .map(|_| {
             runtime.update_runtime_state(AppState::Done, STATUS_API_KEY_VALID.to_string());
