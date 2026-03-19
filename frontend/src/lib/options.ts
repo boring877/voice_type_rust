@@ -1,21 +1,7 @@
 import type { AppInfo, Config, RuntimeSnapshot } from "../types";
 
 export const modelOptions = [
-  { value: "whisper-large-v3-turbo", label: "Whisper Large v3 Turbo" },
-  { value: "whisper-large-v3", label: "Whisper Large v3" },
-  { value: "distil-whisper-large-v3-en", label: "Distil Whisper Large v3 (EN)" }
-];
-
-export const grammarProfiles = [
-  { value: "fast", label: "Fast" },
-  { value: "balanced", label: "Balanced" },
-  { value: "quality", label: "Quality" }
-];
-
-export const grammarModels = [
-  { value: "llama-3.3-70b-versatile", label: "Llama 3.3 70B" },
-  { value: "qwen/qwen3-32b", label: "Qwen 3 32B" },
-  { value: "openai/gpt-oss-120b", label: "GPT-OSS 120B" }
+  { value: "whisper-large-v3-turbo", label: "Whisper Large v3 Turbo" }
 ];
 
 export const styleOptions = [
@@ -67,9 +53,6 @@ export const fallbackConfig: Config = {
   noise_threshold: 0.01,
   language: "auto",
   transcription_model: "whisper-large-v3-turbo",
-  grammar_correction: false,
-  grammar_profile: "balanced",
-  grammar_model: "llama-3.3-70b-versatile",
   always_on_top: false,
   hud_enabled: true,
   hud_side: "right",

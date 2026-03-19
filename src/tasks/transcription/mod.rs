@@ -16,7 +16,7 @@ use crate::processing::apply_style_preset;
 use crate::types::{AppState, GuiCommand, STATUS_FILTERED, STATUS_NO_API_KEY, SharedState};
 use crate::history;
 
-use processing::{apply_optional_grammar, process_transcription};
+use processing::process_transcription;
 use request::{RequestPrepError, prepare_request};
 
 /// Transcription task.
@@ -70,15 +70,6 @@ pub async fn transcription_task(
 
                 let processed = process_transcription(&text, &app_state).await;
                 if let Some(final_text) = processed {
-                    let final_text = apply_optional_grammar(
-                        final_text,
-                        prepared.grammar_correction,
-                        &prepared.grammar_profile,
-                        &prepared.grammar_model,
-                        &prepared.options,
-                    )
-                    .await;
-
                     let (style, leave_in_clipboard) = {
                         let state = app_state.lock().await;
                         (state.config.style.clone(), state.config.auto_copy)

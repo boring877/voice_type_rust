@@ -38,11 +38,6 @@ pub const DEFAULT_LANGUAGE: &str = "auto";
 /// Supported provider identifiers stored in config.
 pub const PROVIDER_GROQ: &str = "groq";
 
-/// Grammar quality profile identifiers.
-pub const GRAMMAR_PROFILE_FAST: &str = "fast";
-pub const GRAMMAR_PROFILE_BALANCED: &str = "balanced";
-pub const GRAMMAR_PROFILE_QUALITY: &str = "quality";
-
 /// Floating HUD placement identifiers.
 pub const HUD_SIDE_LEFT: &str = "left";
 pub const HUD_SIDE_RIGHT: &str = "right";

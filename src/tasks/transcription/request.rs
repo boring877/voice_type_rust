@@ -11,9 +11,6 @@ use crate::types::{SharedState, TranscriptionOptions};
 pub struct PreparedRequest {
     pub options: TranscriptionOptions,
     pub provider: Provider,
-    pub grammar_correction: bool,
-    pub grammar_profile: String,
-    pub grammar_model: String,
 }
 
 /// Errors that can happen before sending a transcription request.
@@ -26,24 +23,13 @@ pub enum RequestPrepError {
 pub async fn prepare_request(
     app_state: &Arc<Mutex<SharedState>>,
 ) -> Result<PreparedRequest, RequestPrepError> {
-    let (
-        api_key,
-        language,
-        transcription_model,
-        provider_str,
-        grammar_correction,
-        grammar_profile,
-        grammar_model,
-    ) = {
+    let (api_key, language, transcription_model, provider_str) = {
         let state = app_state.lock().await;
         (
             state.config.resolved_api_key(),
             state.config.language.clone(),
             state.config.transcription_model.clone(),
             state.config.provider.clone(),
-            state.config.grammar_correction,
-            state.config.grammar_profile.clone(),
-            state.config.grammar_model.clone(),
         )
     };
 
@@ -58,17 +44,13 @@ pub async fn prepare_request(
     let options = TranscriptionOptions {
         api_key,
         language,
-        custom_vocabulary: Vec::new(), // TODO: Add to config
+        custom_vocabulary: Vec::new(),
         transcription_model,
-        use_lite_model: false,
         provider: provider_str,
     };
 
     Ok(PreparedRequest {
         options,
         provider,
-        grammar_correction,
-        grammar_profile,
-        grammar_model,
     })
 }

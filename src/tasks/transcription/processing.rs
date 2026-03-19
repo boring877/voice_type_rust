@@ -3,11 +3,9 @@
 use std::sync::Arc;
 
 use tokio::sync::Mutex;
-use tracing::warn;
 
-use crate::api::correct_grammar_with_options;
 use crate::processing::process_text;
-use crate::types::{ProcessingOptions, SharedState, TranscriptionOptions};
+use crate::types::{ProcessingOptions, SharedState};
 
 /// Apply local text processing based on user settings.
 pub async fn process_transcription(
@@ -31,34 +29,4 @@ pub async fn process_transcription(
 
     drop(state);
     process_text(text, &options)
-}
-
-/// Optionally run LLM grammar correction with safe fallback.
-pub async fn apply_optional_grammar(
-    text: String,
-    enabled: bool,
-    profile: &str,
-    model: &str,
-    options: &TranscriptionOptions,
-) -> String {
-    if !enabled {
-        return text;
-    }
-
-    match correct_grammar_with_options(
-        &text,
-        &options.api_key,
-        &options.language,
-        profile,
-        Some(model),
-    )
-    .await
-    {
-        Ok(corrected) if !corrected.is_empty() => corrected,
-        Ok(_) => text,
-        Err(e) => {
-            warn!("Grammar correction failed, using original text: {}", e);
-            text
-        }
-    }
 }

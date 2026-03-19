@@ -7,7 +7,6 @@
 
 // Declare submodules
 pub(crate) mod constants;
-mod grammar;
 mod groq;
 mod provider;
 
@@ -15,6 +14,5 @@ mod provider;
 
 // Re-export provider API
 pub use crate::types::api::Provider;
-pub use grammar::correct_grammar_with_options;
-pub use grammar::test_api_key_with_model;
+pub use groq::test_api_key;
 pub use provider::transcribe;

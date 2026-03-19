@@ -13,8 +13,6 @@ import {
   Toggle
 } from "./controls";
 import {
-  grammarModels,
-  grammarProfiles,
   languageOptions,
   modelOptions,
   styleOptions
@@ -62,8 +60,7 @@ export function QuickStartSection(props: {
     debounceRef.current = setTimeout(async () => {
       try {
         await invoke("test_api_key", {
-          apiKey: key,
-          model: config.transcription_model
+          apiKey: key
         });
         setKeyStatus("valid");
       } catch {
@@ -76,7 +73,7 @@ export function QuickStartSection(props: {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [config.api_key, config.transcription_model]);
+  }, [config.api_key]);
 
   const keyStatusIndicator =
     keyStatus === "testing" ? (
@@ -178,18 +175,6 @@ export function SetupSection(props: {
           onChange={(value) => onUpdate("transcription_model", value)}
           options={modelOptions}
         />
-        <SelectField
-          label="Grammar profile"
-          value={config.grammar_profile}
-          onChange={(value) => onUpdate("grammar_profile", value)}
-          options={grammarProfiles}
-        />
-        <SelectField
-          label="Grammar model"
-          value={config.grammar_model}
-          onChange={(value) => onUpdate("grammar_model", value)}
-          options={grammarModels}
-        />
       </div>
 
       <div className="field-grid">
@@ -221,12 +206,6 @@ export function SetupSection(props: {
       </div>
 
       <div className="voice-actions">
-        <Toggle
-          label="Grammar correction"
-          description="Fixes grammar and punctuation before pasting."
-          checked={config.grammar_correction}
-          onChange={(value) => onUpdate("grammar_correction", value)}
-        />
         <button className="link-button" onClick={onOpenApiKeyPage} type="button">
           Get API key
         </button>

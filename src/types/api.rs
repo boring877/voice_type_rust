@@ -18,8 +18,6 @@ pub struct TranscriptionOptions {
     pub custom_vocabulary: Vec<String>,
     /// Explicit transcription model id
     pub transcription_model: String,
-    /// Use lite model (faster but less accurate)
-    pub use_lite_model: bool,
     /// Which provider to use (stored for reference, actual provider passed separately)
     #[allow(dead_code)]
     pub provider: String,
@@ -32,7 +30,6 @@ impl Default for TranscriptionOptions {
             language: DEFAULT_LANGUAGE.to_string(),
             custom_vocabulary: Vec::new(),
             transcription_model: TRANSCRIPTION_MODEL_TURBO.to_string(),
-            use_lite_model: false,
             provider: PROVIDER_GROQ.to_string(),
         }
     }

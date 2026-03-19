@@ -29,9 +29,6 @@ export interface Config {
   noise_threshold: number;
   language: string;
   transcription_model: string;
-  grammar_correction: boolean;
-  grammar_profile: string;
-  grammar_model: string;
   always_on_top: boolean;
   hud_enabled: boolean;
   hud_side: HudSide;

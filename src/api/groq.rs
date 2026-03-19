@@ -8,7 +8,7 @@ use async_trait::async_trait;
 use reqwest::multipart::{Form, Part};
 use std::sync::OnceLock;
 
-use crate::api::constants::{GROQ_API_URL, REQUEST_TIMEOUT, WHISPER_MODEL, WHISPER_MODEL_LITE};
+    use crate::api::constants::{GROQ_API_URL, GROQ_CHAT_URL, REQUEST_TIMEOUT, WHISPER_MODEL};
 use crate::api::provider::TranscriptionProvider;
 use crate::types::api::TranscriptionOptions;
 
@@ -65,11 +65,8 @@ async fn transcribe_with_client(
         .mime_str("audio/wav")
         .context("Failed to create file part")?;
 
-    // Pick explicit user model first, then fallback to legacy toggle.
     let model = if !options.transcription_model.trim().is_empty() {
         options.transcription_model.as_str()
-    } else if options.use_lite_model {
-        WHISPER_MODEL_LITE
     } else {
         WHISPER_MODEL
     };
@@ -152,4 +149,30 @@ fn extract_error_message(error: &serde_json::Value, raw_body: &str) -> String {
 
     // Fallback to raw response for unknown formats.
     raw_body.to_string()
+}
+
+/// Validate an API key by sending a minimal chat-completions request.
+pub async fn test_api_key(api_key: &str) -> Result<()> {
+    let c = client()?;
+    let body = serde_json::json!({
+        "model": "llama-3.3-70b-versatile",
+        "messages": [{ "role": "user", "content": "hi" }],
+        "max_tokens": 1
+    });
+
+    let response = c
+        .post(GROQ_CHAT_URL)
+        .header("Authorization", format!("Bearer {}", api_key))
+        .json(&body)
+        .send()
+        .await
+        .context("Failed to send API key test request")?;
+
+    if response.status().is_success() {
+        Ok(())
+    } else {
+        let status = response.status();
+        let body = response.text().await.unwrap_or_default();
+        anyhow::bail!("API key validation failed ({}): {}", status, body)
+    }
 }

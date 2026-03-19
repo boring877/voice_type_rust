@@ -2,11 +2,11 @@
 //!
 //! Contains the Config struct for user configuration.
 
-use crate::api::constants::{GRAMMAR_MODEL_BALANCED, TRANSCRIPTION_MODEL_TURBO};
+use crate::api::constants::TRANSCRIPTION_MODEL_TURBO;
 use crate::config::{
     BACKGROUND_MODE_IMAGE, DEFAULT_BACKGROUND_COLOR, DEFAULT_BACKGROUND_GRADIENT_END,
     DEFAULT_BACKGROUND_GRADIENT_START, DEFAULT_HOTKEY, DEFAULT_LANGUAGE, DEFAULT_NOISE_THRESHOLD,
-    DEFAULT_SILENCE_THRESHOLD, GRAMMAR_PROFILE_BALANCED, HUD_BACKGROUND_MODE_IMAGE,
+    DEFAULT_SILENCE_THRESHOLD, HUD_BACKGROUND_MODE_IMAGE,
     HUD_SIDE_RIGHT, PROVIDER_GROQ, THEME_DARK, THEME_LIGHT,
 };
 use serde::{Deserialize, Serialize};
@@ -103,18 +103,6 @@ pub struct Config {
     #[serde(default = "default_transcription_model")]
     pub transcription_model: String,
 
-    /// Apply LLM grammar correction before typing output
-    #[serde(default)]
-    pub grammar_correction: bool,
-
-    /// Grammar correction quality profile ("fast", "balanced", or "quality")
-    #[serde(default = "default_grammar_profile")]
-    pub grammar_profile: String,
-
-    /// Grammar correction model ID on Groq.
-    #[serde(default = "default_grammar_model")]
-    pub grammar_model: String,
-
     /// Keep widget always on top
     pub always_on_top: bool,
 
@@ -188,9 +176,6 @@ impl Default for Config {
             noise_threshold: DEFAULT_NOISE_THRESHOLD,
             language: DEFAULT_LANGUAGE.to_string(),
             transcription_model: default_transcription_model(),
-            grammar_correction: false,
-            grammar_profile: default_grammar_profile(),
-            grammar_model: default_grammar_model(),
             always_on_top: false,
             hud_enabled: default_hud_enabled(),
             hud_side: default_hud_side(),
@@ -232,10 +217,6 @@ impl Config {
     }
 }
 
-fn default_grammar_profile() -> String {
-    GRAMMAR_PROFILE_BALANCED.to_string()
-}
-
 fn default_style() -> String {
     "none".to_string()
 }
@@ -258,10 +239,6 @@ fn default_background_gradient_end() -> String {
 
 fn default_transcription_model() -> String {
     TRANSCRIPTION_MODEL_TURBO.to_string()
-}
-
-fn default_grammar_model() -> String {
-    GRAMMAR_MODEL_BALANCED.to_string()
 }
 
 fn default_hud_enabled() -> bool {
