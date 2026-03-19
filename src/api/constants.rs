@@ -1,7 +1,7 @@
 //! API-related constants
 
 /// Default model for Groq Whisper API.
-pub const TRANSCRIPTION_MODEL_TURBO: &str = "whisper-large-v3-turbo";
+pub const TRANSCRIPTION_MODEL_TURBO: &str = "whisper-large-v3";
 
 pub const WHISPER_MODEL: &str = TRANSCRIPTION_MODEL_TURBO;
 

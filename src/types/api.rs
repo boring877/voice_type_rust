@@ -29,7 +29,7 @@ impl Default for TranscriptionOptions {
             api_key: String::new(),
             language: DEFAULT_LANGUAGE.to_string(),
             custom_vocabulary: Vec::new(),
-            transcription_model: TRANSCRIPTION_MODEL_TURBO.to_string(),
+            transcription_model: "whisper-large-v3".to_string(),
             provider: PROVIDER_GROQ.to_string(),
         }
     }
