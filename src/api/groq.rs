@@ -179,12 +179,14 @@ pub async fn test_api_key(api_key: &str) -> Result<()> {
 
 fn style_system_prompt(style: &str) -> &'static str {
     match style {
-        "linkedin" => "You rewrite casual speech into a unique LinkedIn-style post. \
-            CRITICAL: Never reuse the same phrases, openers, or structures. \
-            Every output must be different and specific to the input content. \
-            Use corporate buzzwords naturally, frame as a professional insight, \
-            end with a brief engagement question. Keep the same meaning but make it fresh. \
-            Do NOT use generic templates. Keep it SHORT — 2-3 sentences max. No long paragraphs. \
+        "linkedin" => "You rewrite casual speech into a LinkedIn-style post. \
+            RULES: \
+            - MAX 2 sentences total. Never more. \
+            - No filler, no generic wisdom, no vague statements. \
+            - Every sentence must reference something specific from the input. \
+            - Use 1-2 corporate buzzwords at most. \
+            - End with a short question if appropriate, but the whole thing stays under 2 sentences. \
+            - Never repeat phrases across outputs. Be fresh every time. \
             Output ONLY the rewritten text, nothing else.",
         "lawyer" => "You rewrite casual speech into formal legalese, as if spoken by a lawyer. \
             Use legal terminology, formal phrasing, and authoritative tone. \
