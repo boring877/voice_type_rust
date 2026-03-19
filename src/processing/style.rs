@@ -6,6 +6,7 @@ const STYLE_JAPANESE_EMOJIS: &str = "japanese_emojis";
 const STYLE_JAPANESE_OMG_LEGACY: &str = "japanese_omg";
 const STYLE_NIKO: &str = "niko_style";
 const STYLE_LINKEDIN: &str = "linkedin";
+const STYLE_LAWYER: &str = "lawyer";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum StyleMood {
@@ -33,6 +34,7 @@ pub fn apply_style_preset(text: &str, style: &str, language: &str) -> String {
             format!("{} {}", trimmed, niko_expression(trimmed, mood))
         }
         STYLE_LINKEDIN => linkedin_rewrite(trimmed),
+        STYLE_LAWYER => lawyer_rewrite(trimmed),
         STYLE_NONE | _ => trimmed.to_string(),
     }
 }
@@ -102,6 +104,122 @@ fn linkedin_rewrite(text: &str) -> String {
         "\n\nAgree? Disagree? Let me know.",
         "\n\nWhat's your take?",
         "\n\nWould love to hear your perspective.",
+    ];
+    let closer = stable_pick(&result, closers);
+
+    format!("{}{}{}", opener, result, closer)
+}
+
+fn lawyer_rewrite(text: &str) -> String {
+    let replacements: &[(&str, &str)] = &[
+        ("i think", "it is my professional opinion that"),
+        ("i believe", "it is my contention that"),
+        ("i want", "I would like to formally request"),
+        ("i need", "I require"),
+        ("i said", "I stated"),
+        ("i told", "I informed"),
+        ("i asked", "I inquired"),
+        ("maybe", "it is conceivable that"),
+        ("probably", "in all likelihood"),
+        ("definitely", "without a shadow of a doubt"),
+        ("actually", "in point of fact"),
+        ("basically", "fundamentally"),
+        ("honestly", "candidly speaking"),
+        ("obviously", "it is self-evident that"),
+        ("clearly", "it is abundantly clear that"),
+        ("very", "exceedingly"),
+        ("really", "genuinely"),
+        ("just", "merely"),
+        ("also", "furthermore"),
+        ("but", "however"),
+        ("so", "therefore"),
+        ("now", "at this juncture"),
+        ("sorry", "I extend my sincere apologies"),
+        ("please", "kindly"),
+        ("help", "render assistance"),
+        ("wrong", "factually incorrect"),
+        ("right", "legally sound"),
+        ("true", "accurate to the best of my knowledge"),
+        ("fake", "fraudulent and without merit"),
+        ("lie", "a willful misrepresentation of the facts"),
+        ("agree", "concur"),
+        ("disagree", "respectfully dissent"),
+        ("promise", "hereby commit"),
+        ("pay", "remit compensation"),
+        ("cost", "financial obligation"),
+        ("price", "stipulated fee"),
+        ("buy", "acquire"),
+        ("sell", "divest"),
+        ("sign", "execute"),
+        ("rule", "binding provision"),
+        ("law", "applicable statute"),
+        ("contract", "binding agreement"),
+        ("deal", "arrangement"),
+        ("problem", "matter requiring resolution"),
+        ("fix", "remedy"),
+        ("issue", "contentious matter"),
+        ("question", "line of inquiry"),
+        ("answer", "response"),
+        ("talk", "confer"),
+        ("meeting", "formal proceeding"),
+        ("plan", "proposed course of action"),
+        ("idea", "proposed framework"),
+        ("decide", "determine"),
+        ("choose", "elect"),
+        ("stop", "cease and desist"),
+        ("start", "commence"),
+        ("end", "conclude"),
+        ("wait", "stand adjourned"),
+        ("give", "provide"),
+        ("take", "assume possession of"),
+        ("use", "utilize"),
+        ("try", "make a good-faith effort to"),
+        ("fail", "fall short of expectations"),
+        ("win", "prevail"),
+        ("lose", "suffer an adverse outcome"),
+    ];
+
+    let mut result = text.to_string();
+    for (casual, legal) in replacements {
+        let lower = result.to_ascii_lowercase();
+        if let Some(idx) = lower.find(casual) {
+            let after_word = idx + casual.len();
+            let is_word_boundary = |i: usize| {
+                i >= result.len() || !result.as_bytes()[i].is_ascii_alphanumeric()
+            };
+            let before_ok =
+                idx == 0 || !result.as_bytes()[idx.saturating_sub(1)].is_ascii_alphanumeric();
+            if before_ok && is_word_boundary(after_word) {
+                let original_casing = &result[idx..after_word];
+                let replacement = if original_casing.starts_with(char::is_uppercase)
+                    && legal.starts_with(char::is_lowercase)
+                {
+                    let (first, rest) = legal.split_at(1);
+                    let mut capped = String::with_capacity(legal.len());
+                    capped.extend(first.to_uppercase().chars());
+                    capped.push_str(rest);
+                    capped
+                } else {
+                    legal.to_string()
+                };
+                result = format!("{}{}{}", &result[..idx], replacement, &result[after_word..]);
+            }
+        }
+    }
+
+    let openers = &[
+        "Pursuant to the matter at hand:\n\n",
+        "Be it known that:\n\n",
+        "In consideration of the foregoing:\n\n",
+        "Having reviewed the relevant facts:\n\n",
+    ];
+    let opener = stable_pick(&result, openers);
+
+    let closers = &[
+        "\n\nRespectfully submitted.",
+        "\n\nI rest my case.",
+        "\n\nThis concludes my statement on the matter.",
+        "\n\nSo advised.",
     ];
     let closer = stable_pick(&result, closers);
 
@@ -381,5 +499,35 @@ mod tests {
         let result = apply_style_preset("Hello world", STYLE_LINKEDIN, "en");
         assert!(result.contains("Hello"));
         assert!(result.contains("world"));
+    }
+
+    #[test]
+    fn test_lawyer_style_replaces_casual_words() {
+        let result = apply_style_preset("I think this is wrong", STYLE_LAWYER, "en");
+        assert!(result.contains("professional opinion"));
+        assert!(result.contains("factually incorrect"));
+    }
+
+    #[test]
+    fn test_lawyer_style_adds_opener_and_closer() {
+        let result = apply_style_preset("I think maybe we should try", STYLE_LAWYER, "en");
+        assert!(
+            result.contains("Pursuant to")
+                || result.contains("Be it known")
+                || result.contains("In consideration")
+                || result.contains("Having reviewed")
+        );
+        assert!(
+            result.contains("Respectfully submitted")
+                || result.contains("rest my case")
+                || result.contains("concludes my statement")
+                || result.contains("So advised")
+        );
+    }
+
+    #[test]
+    fn test_lawyer_style_preserves_casing() {
+        let result = apply_style_preset("I Think this is true", STYLE_LAWYER, "en");
+        assert!(result.contains("It is my professional opinion"));
     }
 }
