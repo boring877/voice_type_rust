@@ -21,7 +21,8 @@ export const grammarModels = [
 export const styleOptions = [
   { value: "none", label: "None" },
   { value: "japanese_emojis", label: "Japanese emojis" },
-  { value: "niko_style", label: "Niko style" }
+  { value: "niko_style", label: "Niko style" },
+  { value: "linkedin", label: "LinkedIn" }
 ];
 
 export const languageOptions = [

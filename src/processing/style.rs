@@ -5,6 +5,7 @@ const STYLE_NONE: &str = "none";
 const STYLE_JAPANESE_EMOJIS: &str = "japanese_emojis";
 const STYLE_JAPANESE_OMG_LEGACY: &str = "japanese_omg";
 const STYLE_NIKO: &str = "niko_style";
+const STYLE_LINKEDIN: &str = "linkedin";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum StyleMood {
@@ -22,16 +23,89 @@ pub fn apply_style_preset(text: &str, style: &str, language: &str) -> String {
         return String::new();
     }
 
-    let mood = detect_style_mood(trimmed, language);
-
     match style {
         STYLE_JAPANESE_EMOJIS | STYLE_JAPANESE_OMG_LEGACY => {
-            format!("{trimmed} {}", japanese_expression(trimmed, mood))
+            let mood = detect_style_mood(trimmed, language);
+            format!("{} {}", trimmed, japanese_expression(trimmed, mood))
         }
-        STYLE_NIKO => format!("{trimmed} {}", niko_expression(trimmed, mood)),
-        STYLE_NONE => trimmed.to_string(),
-        _ => trimmed.to_string(),
+        STYLE_NIKO => {
+            let mood = detect_style_mood(trimmed, language);
+            format!("{} {}", trimmed, niko_expression(trimmed, mood))
+        }
+        STYLE_LINKEDIN => linkedin_rewrite(trimmed),
+        STYLE_NONE | _ => trimmed.to_string(),
     }
+}
+
+fn linkedin_rewrite(text: &str) -> String {
+    let replacements: &[(&str, &str)] = &[
+        ("good", "impactful"),
+        ("bad", "challenging"),
+        ("helped", "empowered"),
+        ("made", "delivered"),
+        ("showed", "demonstrated"),
+        ("learned", "discovered"),
+        ("did", "executed"),
+        ("worked on", "spearheaded"),
+        ("tried", "explored"),
+        ("used", "leveraged"),
+        ("asked", "consulted with"),
+        ("told", "aligned with"),
+        ("got", "secured"),
+        ("want", "aspire to"),
+        ("think", "believe"),
+        ("nice", "noteworthy"),
+        ("hard", "rigorous"),
+        ("big", "significant"),
+        ("small", "focused"),
+        ("fast", "agile"),
+        ("start", "initiate"),
+        ("finish", "finalize"),
+        ("team", "cross-functional team"),
+        ("idea", "strategic initiative"),
+        ("plan", "roadmap"),
+        ("meeting", "alignment session"),
+        ("boss", "stakeholder"),
+        ("problem", "opportunity"),
+        ("fix", "address"),
+        ("change", "transformation"),
+        ("update", "iterate on"),
+        ("share", "broadcast"),
+        ("grow", "scale"),
+        ("build", "architect"),
+    ];
+
+    let mut result = text.to_string();
+    for (casual, corporate) in replacements {
+        if let Some(idx) = result.to_ascii_lowercase().find(casual) {
+            let after_word = idx + casual.len();
+            let is_word_boundary = |i: usize| {
+                i >= result.len() || !result.as_bytes()[i].is_ascii_alphanumeric()
+            };
+            let before_ok = idx == 0 || !result.as_bytes()[idx.saturating_sub(1)].is_ascii_alphanumeric();
+            if before_ok && is_word_boundary(after_word) {
+                result = format!("{}{}{}", &result[..idx], corporate, &result[after_word..]);
+            }
+        }
+    }
+
+    let openers = &[
+        "Here's the thing:\n\n",
+        "I never expected this, but:\n\n",
+        "After deep reflection:\n\n",
+        "Let me share something:\n\n",
+    ];
+    let opener = stable_pick(&result, openers);
+
+    let closers = &[
+        "\n\nThoughts?",
+        "\n\nAgree? Disagree? Let me know.",
+        "\n\nWhat's your take?",
+        "\n\nWould love to hear your perspective.",
+    ];
+    let closer = stable_pick(&result, closers);
+
+    format!("{}{}{}", opener, result, closer)
 }
 
 fn ascii_lower_words(text: &str) -> Vec<String> {
@@ -279,5 +353,33 @@ mod tests {
 
         assert!(calm.contains(" nya "));
         assert!(curious.contains(" nya? "));
+    }
+
+    #[test]
+    fn test_linkedin_style_replaces_casual_words() {
+        let result = apply_style_preset("I made a good plan for the team", STYLE_LINKEDIN, "en");
+        assert!(result.contains("impactful"));
+        assert!(result.contains("roadmap"));
+        assert!(result.contains("cross-functional team"));
+    }
+
+    #[test]
+    fn test_linkedin_style_adds_opener_and_closer() {
+        let result = apply_style_preset("I think this is a good idea", STYLE_LINKEDIN, "en");
+        assert!(result.contains("believe"));
+        assert!(result.contains("strategic initiative"));
+        assert!(
+            result.contains("Thoughts?")
+                || result.contains("Let me know")
+                || result.contains("What's your take?")
+                || result.contains("your perspective")
+        );
+    }
+
+    #[test]
+    fn test_linkedin_style_preserves_non_matching_words() {
+        let result = apply_style_preset("Hello world", STYLE_LINKEDIN, "en");
+        assert!(result.contains("Hello"));
+        assert!(result.contains("world"));
     }
 }
