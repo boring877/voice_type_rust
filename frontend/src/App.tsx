@@ -32,6 +32,7 @@ export default function App() {
   const [hotkeyLabel, setHotkeyLabel] = useState(fallbackRuntime.hotkeyLabel);
   const [error, setError] = useState<string | null>(null);
   const [advancedMode, setAdvancedMode] = useState(false);
+  const [activeTab, setActiveTab] = useState<"settings" | "history">("settings");
 
   const configRef = useRef(config);
   const savedConfigRef = useRef(savedConfig);
@@ -260,21 +261,40 @@ export default function App() {
             <div className="mode-toggle-row">
               <button
                 className={!advancedMode ? "mode-pill active" : "mode-pill"}
-                onClick={() => setAdvancedMode(false)}
+                onClick={() => { setAdvancedMode(false); setActiveTab("settings"); }}
                 type="button"
               >
                 Normal
               </button>
               <button
                 className={advancedMode ? "mode-pill active" : "mode-pill"}
-                onClick={() => setAdvancedMode(true)}
+                onClick={() => { setAdvancedMode(true); setActiveTab("settings"); }}
                 type="button"
               >
                 Advanced
               </button>
             </div>
 
-            {!advancedMode && (
+            <div className="tab-toggle-row">
+              <button
+                className={activeTab === "settings" ? "tab-pill active" : "tab-pill"}
+                onClick={() => setActiveTab("settings")}
+                type="button"
+              >
+                Settings
+              </button>
+              <button
+                className={activeTab === "history" ? "tab-pill active" : "tab-pill"}
+                onClick={() => setActiveTab("history")}
+                type="button"
+              >
+                History
+              </button>
+            </div>
+
+            {activeTab === "history" && <HistorySection />}
+
+            {activeTab === "settings" && !advancedMode && (
               <QuickStartSection
                 config={config}
                 hotkeyLabel={hotkeyLabel}
@@ -287,7 +307,7 @@ export default function App() {
               />
             )}
 
-            {advancedMode && (
+            {activeTab === "settings" && advancedMode && (
               <>
                 <SetupSection
                   config={config}
@@ -318,8 +338,6 @@ export default function App() {
                   onUpdate={update}
                   theme={theme}
                 />
-
-                <HistorySection />
               </>
             )}
           </div>
