@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Voice Type",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "identifier": "com.voicetype.desktop",
   "build": {
     "beforeDevCommand": "bun run dev",
@@ -31,7 +31,7 @@
           "$HOME/Library/Application Support/voice-type/backgrounds/**"
         ]
       },
-      "csp": null
+      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost; style-src 'self' 'unsafe-inline'"
     }
   },
   "bundle": {

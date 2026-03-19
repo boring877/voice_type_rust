@@ -86,9 +86,25 @@ fn save_config(
 }
 
 #[tauri::command]
+fn has_configured_api_key(runtime: tauri::State<'_, RuntimeState>) -> bool {
+    let config = &runtime.snapshot().config;
+    config::has_api_key(config)
+}
+
+#[tauri::command]
 fn quit_app(app: tauri::AppHandle, runtime: tauri::State<'_, RuntimeState>) {
     runtime.set_should_quit();
     app.exit(0);
+}
+
+#[tauri::command]
+fn get_history() -> Vec<voice_type::history::HistoryEntry> {
+    voice_type::history::load()
+}
+
+#[tauri::command]
+fn clear_history() -> Result<(), String> {
+    voice_type::history::clear().map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -238,6 +254,25 @@ async fn test_api_key(
         })
 }
 
+#[tauri::command]
+fn play_beep(frequency: u32, duration_ms: u32) -> Result<(), String> {
+    std::thread::spawn(move || {
+        #[cfg(target_os = "windows")]
+        {
+            mod win_beep {
+                use std::ffi::c_int;
+                unsafe extern "system" {
+                    pub fn Beep(dwFreq: u32, dwDuration: u32) -> c_int;
+                }
+            }
+            unsafe {
+                win_beep::Beep(frequency, duration_ms);
+            }
+        }
+    });
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     init_logging();
@@ -302,7 +337,11 @@ pub fn run() {
             import_hud_background_image,
             load_background_image_data_url,
             open_external_url,
-            quit_app
+            quit_app,
+            has_configured_api_key,
+            get_history,
+            clear_history,
+            play_beep
         ])
         .run(tauri::generate_context!())
         .unwrap_or_else(|e| {

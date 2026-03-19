@@ -64,3 +64,9 @@ export interface HotkeyCapturePayload {
   configValue: string;
   label: string;
 }
+
+export interface HistoryEntry {
+  text: string;
+  timestamp: number;
+  wordCount: number;
+}

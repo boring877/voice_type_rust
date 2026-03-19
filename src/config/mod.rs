@@ -17,4 +17,4 @@ pub use constants::{
 };
 
 // Re-export functions from manager
-pub use manager::{backgrounds_dir, has_api_key, load, save};
+pub use manager::{backgrounds_dir, config_dir, has_api_key, load, save};

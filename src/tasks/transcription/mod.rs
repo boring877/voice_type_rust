@@ -14,6 +14,7 @@ use crate::api::transcribe;
 use crate::input::type_text;
 use crate::processing::apply_style_preset;
 use crate::types::{AppState, GuiCommand, STATUS_FILTERED, STATUS_NO_API_KEY, SharedState};
+use crate::history;
 
 use processing::{apply_optional_grammar, process_transcription};
 use request::{RequestPrepError, prepare_request};
@@ -90,12 +91,15 @@ pub async fn transcription_task(
                     let _ = gui_tx.try_send(GuiCommand::SetStatus(status));
                     let _ = gui_tx.try_send(GuiCommand::SetState(AppState::Done));
 
+                    let final_text_for_history = final_text.clone();
                     let type_result = tokio::task::spawn_blocking(move || {
                         type_text(&final_text, leave_in_clipboard)
                     })
                     .await;
                     if let Err(e) = type_result.unwrap_or_else(|e| Err(anyhow::anyhow!("Task join error: {}", e))) {
                         error!("Failed to type text: {}", e);
+                    } else if let Err(e) = history::push(&final_text_for_history) {
+                        warn!("Failed to save history entry: {}", e);
                     }
                 } else {
                     info!("Text was filtered out");

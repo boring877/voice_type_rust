@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { normalizedColor } from "../lib/appearance";
 
 export function SectionHeader({ title }: { title: string }) {
@@ -89,10 +90,14 @@ export function TextField(props: {
   onChange: (value: string) => void;
   placeholder?: string;
   type?: "text" | "password";
+  status?: ReactNode;
 }) {
   return (
     <label className="field">
-      <span>{props.label}</span>
+      <span>
+        {props.label}
+        {props.status ? <span className="field-status">{props.status}</span> : null}
+      </span>
       <input
         type={props.type ?? "text"}
         value={props.value}

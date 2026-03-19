@@ -25,6 +25,7 @@ pub const RUNTIME_EVENT: &str = "voice-type://runtime";
 
 const MENU_OPEN: &str = "open";
 const MENU_QUIT: &str = "quit";
+const MENU_VERSION: &str = "version";
 const TRAY_ID: &str = "main";
 const HUD_WINDOW: &str = "hud";
 const HUD_WIDTH: f64 = 264.0;
@@ -54,6 +55,7 @@ pub struct RuntimeState {
     hotkey_state: Arc<HotkeyState>,
     gui_tx: mpsc::Sender<GuiCommand>,
     _instance: Option<SingleInstance>,
+    _runtime: Arc<tokio::runtime::Runtime>,
 }
 
 impl RuntimeState {
@@ -85,14 +87,24 @@ impl RuntimeState {
         let (audio_level_tx, audio_level_rx) = mpsc::channel(128);
         let (transcription_tx, transcription_rx) = mpsc::channel(4);
 
+        let runtime = Arc::new(
+            tokio::runtime::Runtime::new().expect("failed to create shared tokio runtime"),
+        );
+
         spawn_audio_task(
             Arc::clone(&shared_state),
             Arc::clone(&hotkey_state),
             audio_level_tx,
             transcription_tx,
             gui_tx.clone(),
+            Arc::clone(&runtime),
         );
-        spawn_transcription_task(Arc::clone(&shared_state), transcription_rx, gui_tx.clone());
+        spawn_transcription_task(
+            Arc::clone(&shared_state),
+            transcription_rx,
+            gui_tx.clone(),
+            Arc::clone(&runtime),
+        );
         spawn_audio_level_bridge(audio_level_rx, gui_tx.clone());
         spawn_gui_bridge(app.clone(), Arc::clone(&snapshot), gui_rx);
         spawn_hotkey_capture_bridge(
@@ -114,6 +126,7 @@ impl RuntimeState {
             hotkey_state,
             gui_tx,
             _instance: instance,
+            _runtime: runtime,
         })
     }
 
@@ -195,6 +208,8 @@ impl RuntimeSnapshot {
 pub fn create_tray(app: &AppHandle) -> Result<TrayIcon<Wry>> {
     let menu = MenuBuilder::new(app)
         .text(MENU_OPEN, "Open Voice Type")
+        .separator()
+        .text(MENU_VERSION, "Voice Type v0.4.0")
         .separator()
         .text(MENU_QUIT, "Quit")
         .build()
@@ -326,9 +341,9 @@ fn spawn_audio_task(
     audio_level_tx: mpsc::Sender<f32>,
     transcription_tx: mpsc::Sender<Vec<u8>>,
     gui_tx: mpsc::Sender<GuiCommand>,
+    runtime: Arc<tokio::runtime::Runtime>,
 ) {
     thread::spawn(move || {
-        let runtime = tokio::runtime::Runtime::new().expect("failed to create audio runtime");
         runtime.block_on(audio_recording_task(
             shared_state,
             hotkey_state,
@@ -502,10 +517,9 @@ fn spawn_transcription_task(
     shared_state: Arc<Mutex<SharedState>>,
     transcription_rx: mpsc::Receiver<Vec<u8>>,
     gui_tx: mpsc::Sender<GuiCommand>,
+    runtime: Arc<tokio::runtime::Runtime>,
 ) {
     thread::spawn(move || {
-        let runtime =
-            tokio::runtime::Runtime::new().expect("failed to create transcription runtime");
         runtime.block_on(transcription_task(shared_state, transcription_rx, gui_tx));
     });
 }

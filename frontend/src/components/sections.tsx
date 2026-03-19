@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import {
   ColorField,
   DisplayField,
@@ -41,6 +43,49 @@ export function QuickStartSection(props: {
     onUpdate
   } = props;
 
+  const [keyStatus, setKeyStatus] = useState<"idle" | "testing" | "valid" | "invalid">("idle");
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    const key = config.api_key.trim();
+    if (!key) {
+      setKeyStatus("idle");
+      return;
+    }
+
+    setKeyStatus("testing");
+    debounceRef.current = setTimeout(async () => {
+      try {
+        await invoke("test_api_key", {
+          apiKey: key,
+          model: config.transcription_model
+        });
+        setKeyStatus("valid");
+      } catch {
+        setKeyStatus("invalid");
+      }
+    }, 500);
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [config.api_key, config.transcription_model]);
+
+  const keyStatusIndicator =
+    keyStatus === "testing" ? (
+      <span className="key-status testing">Testing...</span>
+    ) : keyStatus === "valid" ? (
+      <span className="key-status valid">Valid</span>
+    ) : keyStatus === "invalid" ? (
+      <span className="key-status invalid">Invalid</span>
+    ) : null;
+
   return (
     <section className="dock-section">
       <SectionHeader title="Setup" />
@@ -51,6 +96,7 @@ export function QuickStartSection(props: {
         value={config.api_key}
         onChange={(value) => onUpdate("api_key", value)}
         placeholder="gsk_..."
+        status={keyStatusIndicator}
       />
 
       <SelectField

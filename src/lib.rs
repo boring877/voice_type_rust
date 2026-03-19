@@ -33,6 +33,7 @@ pub mod types;
 pub mod api;
 pub mod audio;
 pub mod config;
+pub mod history;
 pub mod input;
 pub mod processing;
 pub mod tasks;

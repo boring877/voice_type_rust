@@ -17,7 +17,9 @@ import {
   SettingsSection,
   SetupSection
 } from "./components/sections";
+import { HistorySection } from "./components/HistorySection";
 import { HudStageSection } from "./components/HudStageSection";
+import { OnboardingOverlay } from "./components/OnboardingOverlay";
 import type { AppInfo, Config, HotkeyCapturePayload, RuntimeSnapshot } from "./types";
 
 export default function App() {
@@ -40,6 +42,7 @@ export default function App() {
 
   const configRef = useRef(config);
   const savedConfigRef = useRef(savedConfig);
+  const prevAppStateRef = useRef(runtime.appState);
 
   useEffect(() => {
     configRef.current = config;
@@ -48,6 +51,19 @@ export default function App() {
   useEffect(() => {
     savedConfigRef.current = savedConfig;
   }, [savedConfig]);
+
+  useEffect(() => {
+    const prev = prevAppStateRef.current;
+    const curr = runtime.appState;
+
+    if (curr === "recording" && prev !== "recording") {
+      void invoke("play_beep", { frequency: 800, durationMs: 100 });
+    } else if (prev === "recording" && curr !== "recording") {
+      void invoke("play_beep", { frequency: 600, durationMs: 80 });
+    }
+
+    prevAppStateRef.current = curr;
+  }, [runtime.appState]);
 
   useEffect(() => {
     let mounted = true;
@@ -468,6 +484,7 @@ export default function App() {
 
   return (
     <div className={`app-shell theme-${theme} background-${backgroundMode}`} style={shellStyle}>
+      {!loading && !config.api_key && <OnboardingOverlay />}
       <div className="background-layer" style={backgroundStyle} />
       <div className="background-scrim" />
 
@@ -557,6 +574,8 @@ export default function App() {
                   onUpdate={update}
                   theme={theme}
                 />
+
+                <HistorySection />
               </>
             )}
           </div>
