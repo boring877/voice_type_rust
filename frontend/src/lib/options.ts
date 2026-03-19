@@ -9,7 +9,8 @@ export const styleOptions = [
   { value: "japanese_emojis", label: "Japanese emojis" },
   { value: "niko_style", label: "Niko style" },
   { value: "linkedin", label: "LinkedIn" },
-  { value: "lawyer", label: "Lawyer" }
+  { value: "lawyer", label: "Lawyer" },
+  { value: "agent", label: "Agent Prompt" }
 ];
 
 export const languageOptions = [

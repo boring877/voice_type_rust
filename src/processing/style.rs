@@ -7,6 +7,7 @@ const STYLE_JAPANESE_OMG_LEGACY: &str = "japanese_omg";
 const STYLE_NIKO: &str = "niko_style";
 const STYLE_LINKEDIN: &str = "linkedin";
 const STYLE_LAWYER: &str = "lawyer";
+const STYLE_AGENT: &str = "agent";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum StyleMood {
@@ -20,7 +21,7 @@ enum StyleMood {
 
 /// Check if a style requires LLM rewriting (async).
 pub fn needs_llm(style: &str) -> bool {
-    matches!(style, STYLE_LINKEDIN | STYLE_LAWYER)
+    matches!(style, STYLE_LINKEDIN | STYLE_LAWYER | STYLE_AGENT)
 }
 
 /// Apply a local (non-LLM) style preset synchronously. Returns None for LLM styles.

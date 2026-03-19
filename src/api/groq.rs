@@ -187,6 +187,17 @@ fn style_system_prompt(style: &str) -> &'static str {
             Use legal terminology, formal phrasing, and authoritative tone. \
             Keep the same meaning. \
             Output ONLY the rewritten text, nothing else.",
+        "agent" => "You restructure casual spoken text into a clear, well-structured prompt \
+            designed to be given to an AI agent or coding assistant. \
+            Apply these principles: \
+            1. State the goal or task explicitly at the start. \
+            2. Provide relevant context in a structured way. \
+            3. Specify constraints or requirements clearly. \
+            4. Define the expected output format. \
+            5. Remove filler words, hedging, and vague language. \
+            6. Use XML tags to separate sections if appropriate (e.g. <task>, <context>, <constraints>, <output_format>). \
+            7. Keep it concise but complete — every sentence should add information. \
+            Keep the original meaning and intent. Output ONLY the rewritten prompt, nothing else.",
         _ => "Rewrite the following text. Output ONLY the rewritten text, nothing else.",
     }
 }
