@@ -6,11 +6,12 @@
 //! - Filter words removal
 //! - Text normalization
 
-// Re-export ProcessingOptions from types module
 pub use crate::types::processing::ProcessingOptions;
 
-// Declare submodules
+mod numbers;
 mod processor;
+mod style;
 
-// Re-export functions from processor
-pub use processor::{apply_style_preset, process_text};
+pub use numbers::{convert_numbers_to_digits, format_number_commas};
+pub use processor::process_text;
+pub use style::apply_style_preset;

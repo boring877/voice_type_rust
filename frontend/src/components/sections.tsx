@@ -4,6 +4,7 @@ import {
   ColorField,
   DisplayField,
   FilePathField,
+  NumberField,
   SectionHeader,
   SegmentedButton,
   SelectField,
@@ -277,7 +278,30 @@ export function SettingsSection(props: {
           checked={config.always_on_top}
           onChange={(value) => onUpdate("always_on_top", value)}
         />
+        <Toggle
+          label="Auto-stop recording"
+          description="Stop recording automatically after a period of silence."
+          checked={config.auto_stop}
+          onChange={(value) => onUpdate("auto_stop", value)}
+        />
       </div>
+
+      {config.auto_stop ? (
+        <div className="field-grid">
+          <NumberField
+            label="Silence threshold"
+            value={config.silence_threshold}
+            onChange={(value) => onUpdate("silence_threshold", value)}
+            step={0.5}
+          />
+          <NumberField
+            label="Noise threshold"
+            value={config.noise_threshold}
+            onChange={(value) => onUpdate("noise_threshold", value)}
+            step={0.01}
+          />
+        </div>
+      ) : null}
 
       <TextAreaField
         label="Phrases to remove"

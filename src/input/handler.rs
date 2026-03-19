@@ -401,15 +401,10 @@ fn send_char(c: char) -> Result<(), SimulateError> {
     // Map common characters to keys
     let event = match c {
         'a'..='z' | 'A'..='Z' | '0'..='9' => {
-            // Use Unknown key with Unicode code point
             EventType::KeyPress(Key::Unknown(c as u32))
         }
         ' ' => EventType::KeyPress(Key::Space),
         '\n' => EventType::KeyPress(Key::Return),
-        '.' => EventType::KeyPress(Key::Unknown('.' as u32)),
-        ',' => EventType::KeyPress(Key::Unknown(',' as u32)),
-        '!' => EventType::KeyPress(Key::Unknown('!' as u32)),
-        '?' => EventType::KeyPress(Key::Unknown('?' as u32)),
         _ => EventType::KeyPress(Key::Unknown(c as u32)),
     };
 
