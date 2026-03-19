@@ -50,12 +50,6 @@ export default function App() {
     const prev = prevAppStateRef.current;
     const curr = runtime.appState;
 
-    if (curr === "recording" && prev !== "recording") {
-      void invoke("play_beep", { frequency: 800, durationMs: 100 });
-    } else if (prev === "recording" && curr !== "recording") {
-      void invoke("play_beep", { frequency: 600, durationMs: 80 });
-    }
-
     prevAppStateRef.current = curr;
   }, [runtime.appState]);
 
