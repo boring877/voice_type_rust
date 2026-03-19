@@ -1,8 +1,7 @@
 import type { AppInfo, Config, RuntimeSnapshot } from "../types";
 
 export const modelOptions = [
-  { value: "whisper-large-v3", label: "Whisper Large v3" },
-  { value: "whisper-large-v3-turbo", label: "Whisper Large v3 Turbo" }
+  { value: "whisper-large-v3", label: "Whisper Large v3" }
 ];
 
 export const styleOptions = [
