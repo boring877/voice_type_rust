@@ -5,7 +5,6 @@ const STYLE_NONE: &str = "none";
 const STYLE_JAPANESE_EMOJIS: &str = "japanese_emojis";
 const STYLE_JAPANESE_OMG_LEGACY: &str = "japanese_omg";
 const STYLE_NIKO: &str = "niko_style";
-const STYLE_AGENT: &str = "agent";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum StyleMood {
@@ -15,43 +14,6 @@ enum StyleMood {
     Angry,
     Tired,
     Calm,
-}
-
-fn agent_rewrite(text: &str) -> String {
-    let mut context = String::new();
-    let mut task = String::new();
-    let constraints = String::new();
-
-    for line in text.lines() {
-        let line = line.trim();
-        if line.is_empty() {
-            continue;
-        }
-        if task.is_empty() {
-            task.push_str(line);
-        } else {
-            context.push_str(line);
-            context.push(' ');
-        }
-    }
-
-    if task.is_empty() {
-        return text.to_string();
-    }
-
-    let mut result = format!("<task>\n{}\n</task>\n", task.trim_end());
-
-    if !context.trim().is_empty() {
-        result.push_str(&format!("<context>\n{}\n</context>\n", context.trim_end()));
-    }
-
-    if !constraints.is_empty() {
-        result.push_str(&format!("<constraints>\n{}\n</constraints>\n", constraints));
-    }
-
-    result.push_str("<output_format>\nProvide a direct, concise response.\n</output_format>");
-
-    result
 }
 
 /// Apply a local style preset synchronously.
@@ -70,7 +32,6 @@ pub fn apply_local_style(text: &str, style: &str, language: &str) -> Option<Stri
             let mood = detect_style_mood(trimmed, language);
             Some(format!("{} {}", trimmed, niko_expression(trimmed, mood)))
         }
-        STYLE_AGENT => Some(agent_rewrite(trimmed)),
         STYLE_NONE => Some(trimmed.to_string()),
         _ => Some(trimmed.to_string()),
     }
@@ -321,27 +282,5 @@ mod tests {
 
         assert!(calm.contains(" nya "));
         assert!(curious.contains(" nya? "));
-    }
-
-    #[test]
-    fn test_agent_style_wraps_in_xml_template() {
-        let result = apply_local_style("fix the login bug on the auth page", STYLE_AGENT, "en").unwrap();
-        assert!(result.contains("<task>"));
-        assert!(result.contains("fix the login bug"));
-        assert!(result.contains("</task>"));
-        assert!(result.contains("<output_format>"));
-    }
-
-    #[test]
-    fn test_agent_style_splits_task_and_context() {
-        let result = apply_local_style(
-            "fix the login bug\nthe auth page crashes when you click login with an empty password field",
-            STYLE_AGENT,
-            "en",
-        )
-        .unwrap();
-        assert!(result.contains("<task>\nfix the login bug\n</task>"));
-        assert!(result.contains("<context>\n"));
-        assert!(result.contains("</context>"));
     }
 }

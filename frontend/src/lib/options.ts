@@ -8,7 +8,6 @@ export const styleOptions = [
   { value: "none", label: "None" },
   { value: "japanese_emojis", label: "Japanese emojis" },
   { value: "niko_style", label: "Niko style" },
-  { value: "agent", label: "Agent Prompt" }
 ];
 
 export const languageOptions = [
