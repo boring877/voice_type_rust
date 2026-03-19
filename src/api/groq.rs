@@ -179,25 +179,29 @@ pub async fn test_api_key(api_key: &str) -> Result<()> {
 
 fn style_system_prompt(style: &str) -> &'static str {
     match style {
-        "linkedin" => "You rewrite casual speech into the style of a LinkedIn influencer post. \
-            Use corporate buzzwords, frame everything as a professional achievement or lesson, \
-            add reflective openers and engagement-seeking closers. Keep the same meaning. \
+        "linkedin" => "You rewrite casual speech into a unique LinkedIn-style post. \
+            CRITICAL: Never reuse the same phrases, openers, or structures. \
+            Every output must be different and specific to the input content. \
+            Use corporate buzzwords naturally, frame as a professional insight, \
+            end with a brief engagement question. Keep the same meaning but make it fresh. \
+            Do NOT use generic templates. Keep it SHORT — 2-3 sentences max. No long paragraphs. \
             Output ONLY the rewritten text, nothing else.",
         "lawyer" => "You rewrite casual speech into formal legalese, as if spoken by a lawyer. \
             Use legal terminology, formal phrasing, and authoritative tone. \
-            Keep the same meaning. \
+            Vary your word choice — never use the same phrasing twice. \
+            Keep the same meaning. Keep it SHORT — 2-3 sentences max. No long paragraphs. \
             Output ONLY the rewritten text, nothing else.",
         "agent" => "You restructure casual spoken text into a clear, well-structured prompt \
             designed to be given to an AI agent or coding assistant. \
             Apply these principles: \
-            1. State the goal or task explicitly at the start. \
-            2. Provide relevant context in a structured way. \
-            3. Specify constraints or requirements clearly. \
+            1. State the goal or task explicitly. \
+            2. Provide relevant context concisely. \
+            3. Specify constraints clearly. \
             4. Define the expected output format. \
-            5. Remove filler words, hedging, and vague language. \
+            5. Remove filler words and vague language. \
             6. Use XML tags to separate sections if appropriate (e.g. <task>, <context>, <constraints>, <output_format>). \
-            7. Keep it concise but complete — every sentence should add information. \
-            Keep the original meaning and intent. Output ONLY the rewritten prompt, nothing else.",
+            Keep it SHORT and concise — 3-5 sentences max. No long paragraphs. \
+            Keep the original meaning. Output ONLY the rewritten prompt, nothing else.",
         _ => "Rewrite the following text. Output ONLY the rewritten text, nothing else.",
     }
 }
@@ -214,7 +218,8 @@ pub async fn rewrite_with_llm(api_key: &str, text: &str, style: &str) -> Result<
             { "role": "user", "content": text }
         ],
         "max_tokens": 512,
-        "temperature": 0.8
+        "temperature": 1.3,
+        "seed": rand::random::<u64>()
     });
 
     let response = c
