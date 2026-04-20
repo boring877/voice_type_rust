@@ -223,7 +223,18 @@ export default function App() {
 
   return (
     <div className={`app-shell theme-${theme} background-${backgroundMode}`} style={shellStyle}>
-      {!loading && !config.api_key && <OnboardingOverlay />}
+            {!loading && (
+              <OnboardingOverlay
+                config={config}
+                hotkeyLabel={hotkeyLabel}
+                capturingHotkey={capturingHotkey}
+                captureMessage={captureMessage}
+                onUpdate={update}
+                onStartHotkeyCapture={startHotkeyCapture}
+                onStopHotkeyCapture={stopHotkeyCapture}
+                onOpenApiKeyPage={openApiKeyPage}
+              />
+            )}
       <div className="background-layer" style={backgroundStyle} />
       <div className="background-scrim" />
 

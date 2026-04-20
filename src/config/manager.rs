@@ -17,9 +17,9 @@ const LEGACY_FILTER_WORDS: [&str; 3] = ["thank you", "thanks", "thank you for wa
 ///
 /// Returns: ~/.config/voice-type/config.json (platform-specific)
 fn config_path() -> Result<PathBuf> {
-    let config_dir = config_dir()?;
+    let dir = config_dir()?;
 
-    Ok(config_dir.join("config.json"))
+    Ok(dir.join("config.json"))
 }
 
 pub fn config_dir() -> Result<PathBuf> {

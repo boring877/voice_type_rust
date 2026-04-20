@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tracing::{info, warn};
@@ -68,8 +68,10 @@ pub fn push(text: &str) -> Result<()> {
     entries.insert(0, entry);
     entries.truncate(MAX_ENTRIES);
 
-    let content = serde_json::to_string_pretty(&entries)?;
-    std::fs::write(&path, content)?;
+    let content = serde_json::to_string_pretty(&entries)
+        .context("Failed to serialize history")?;
+    std::fs::write(&path, content)
+        .context("Failed to write history file")?;
 
     info!("History entry saved ({} entries)", entries.len());
     Ok(())

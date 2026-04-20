@@ -127,7 +127,10 @@ where
     let samples = state
         .samples
         .lock()
-        .map_err(|_| anyhow::anyhow!("Failed to lock samples"))?;
+        .unwrap_or_else(|e| {
+            tracing::error!("Samples mutex poisoned: {}", e);
+            e.into_inner()
+        });
 
     tracing::info!(
         "Recorded {} samples at {} Hz",

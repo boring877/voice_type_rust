@@ -14,7 +14,7 @@ pub(crate) fn create_tray(app: &AppHandle) -> Result<TrayIcon<Wry>> {
     let menu = MenuBuilder::new(app)
         .text(MENU_OPEN, "Open Voice Type")
         .separator()
-        .text(MENU_VERSION, "Voice Type v0.4.0")
+        .text(MENU_VERSION, format!("Voice Type v{}", voice_type::VERSION))
         .separator()
         .text(MENU_QUIT, "Quit")
         .build()

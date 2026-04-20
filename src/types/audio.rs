@@ -30,12 +30,12 @@ impl RecordingState {
 
     /// Check if recording should continue
     pub fn is_running(&self) -> bool {
-        self.running.load(Ordering::Relaxed)
+        self.running.load(Ordering::Acquire)
     }
 
     /// Stop the recording
     pub fn stop(&self) {
-        self.running.store(false, Ordering::Relaxed);
+        self.running.store(false, Ordering::Release);
     }
 }
 

@@ -329,7 +329,7 @@ impl HotkeyState {
         }
 
         // Reset the pressed state so switching bindings never leaves recording stuck on.
-        self.is_recording.store(false, Ordering::Relaxed);
+        self.is_recording.store(false, Ordering::Release);
         if let Ok(mut keys) = self.pressed_keys.lock() {
             keys.clear();
         }
@@ -337,8 +337,8 @@ impl HotkeyState {
 
     /// Enter low-level capture mode for the next pressed input.
     pub fn begin_capture(&self) {
-        self.capture_next_input.store(true, Ordering::Relaxed);
-        self.capture_ready.store(false, Ordering::Relaxed);
+        self.capture_next_input.store(true, Ordering::Release);
+        self.capture_ready.store(false, Ordering::Release);
         if let Ok(mut capture_arm_at) = self.capture_arm_at.lock() {
             *capture_arm_at = Some(Instant::now() + Duration::from_millis(180));
         }
@@ -363,15 +363,15 @@ impl HotkeyState {
                 .unwrap_or(true);
 
             if can_arm {
-                self.capture_ready.store(true, Ordering::Relaxed);
+                self.capture_ready.store(true, Ordering::Release);
             }
         }
     }
 
     /// Cancel any pending low-level input capture.
     pub fn cancel_capture(&self) {
-        self.capture_next_input.store(false, Ordering::Relaxed);
-        self.capture_ready.store(false, Ordering::Relaxed);
+        self.capture_next_input.store(false, Ordering::Release);
+        self.capture_ready.store(false, Ordering::Release);
         if let Ok(mut capture_arm_at) = self.capture_arm_at.lock() {
             *capture_arm_at = None;
         }
@@ -379,12 +379,12 @@ impl HotkeyState {
 
     /// Returns true while the listener is waiting for the next pressed input.
     pub fn is_capturing(&self) -> bool {
-        self.capture_next_input.load(Ordering::Relaxed)
+        self.capture_next_input.load(Ordering::Acquire)
     }
 
     /// Returns true when capture mode is armed and the next press will be saved.
     pub fn is_capture_ready(&self) -> bool {
-        self.capture_ready.load(Ordering::Relaxed)
+        self.capture_ready.load(Ordering::Acquire)
     }
 
     /// Take the last binding captured by the low-level listener.
@@ -396,15 +396,15 @@ impl HotkeyState {
     }
 
     fn try_capture_binding(&self, binding: InputBinding) -> bool {
-        if self.capture_next_input.load(Ordering::Relaxed)
-            && self.capture_ready.load(Ordering::Relaxed)
+        if self.capture_next_input.load(Ordering::Acquire)
+            && self.capture_ready.load(Ordering::Acquire)
         {
-            self.capture_next_input.store(false, Ordering::Relaxed);
-            self.capture_ready.store(false, Ordering::Relaxed);
+            self.capture_next_input.store(false, Ordering::Release);
+            self.capture_ready.store(false, Ordering::Release);
             if let Ok(mut captured) = self.captured_binding.lock() {
                 *captured = Some(binding);
             }
-            self.is_recording.store(false, Ordering::Relaxed);
+            self.is_recording.store(false, Ordering::Release);
             return true;
         }
 
@@ -422,7 +422,7 @@ impl HotkeyState {
         }
 
         if self.get_target_binding() == InputBinding::Key(key) {
-            self.is_recording.store(true, Ordering::Relaxed);
+            self.is_recording.store(true, Ordering::Release);
         }
     }
 
@@ -433,7 +433,7 @@ impl HotkeyState {
         }
 
         if self.get_target_binding() == InputBinding::Key(key) {
-            self.is_recording.store(false, Ordering::Relaxed);
+            self.is_recording.store(false, Ordering::Release);
         }
     }
 
@@ -444,19 +444,19 @@ impl HotkeyState {
         }
 
         if self.get_target_binding() == InputBinding::Mouse(button) {
-            self.is_recording.store(true, Ordering::Relaxed);
+            self.is_recording.store(true, Ordering::Release);
         }
     }
 
     /// Record a mouse button release.
     pub fn release_button(&self, button: Button) {
         if self.get_target_binding() == InputBinding::Mouse(button) {
-            self.is_recording.store(false, Ordering::Relaxed);
+            self.is_recording.store(false, Ordering::Release);
         }
     }
 
     /// Check if push-to-talk is currently active.
     pub fn is_recording(&self) -> bool {
-        self.is_recording.load(Ordering::Relaxed)
+        self.is_recording.load(Ordering::Acquire)
     }
 }
