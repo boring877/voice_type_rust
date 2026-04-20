@@ -67,3 +67,10 @@ export interface HistoryEntry {
   timestamp: number;
   wordCount: number;
 }
+
+export interface UpdateInfo {
+  currentVersion: string;
+  latestVersion: string;
+  releaseUrl: string;
+  updateAvailable: boolean;
+}

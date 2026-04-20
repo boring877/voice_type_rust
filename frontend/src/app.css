@@ -1109,6 +1109,45 @@ textarea::placeholder {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.update-banner {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem 0.95rem;
+  border: 1px solid rgba(108, 134, 165, 0.35);
+  border-radius: 14px;
+  background: var(--accent-soft);
+}
+
+.update-banner-copy {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.update-banner-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.update-banner-detail {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.update-banner-actions {
+  display: flex;
+  gap: 0.55rem;
+}
+
+.update-banner-actions .primary-button {
+  padding: 0.42rem 0.82rem;
+  font-size: 0.82rem;
+}
+
+.update-banner-actions .ghost-button {
+  padding: 0.42rem 0.82rem;
+  font-size: 0.82rem;
+}
+
 .hud-shell {
   position: relative;
   width: 100%;

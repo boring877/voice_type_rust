@@ -84,7 +84,8 @@ pub fn run() {
             has_configured_api_key,
             get_history,
             clear_history,
-            play_beep
+            play_beep,
+            check_for_updates
         ])
         .run(tauri::generate_context!())
         .unwrap_or_else(|e| {

@@ -23,6 +23,7 @@ import { useBackgroundImage } from "./hooks/useBackgroundImage";
 import { useBoot } from "./hooks/useBoot";
 import { useHotkeyCapture } from "./hooks/useHotkeyCapture";
 import { useRuntimePolling } from "./hooks/useRuntimePolling";
+import { useUpdateCheck } from "./hooks/useUpdateCheck";
 import type { Config, RuntimeSnapshot } from "./types";
 
 export default function App() {
@@ -82,6 +83,8 @@ export default function App() {
   );
 
   useRuntimePolling(loading, runtime.appState, applyRuntimeSnapshot);
+
+  const { update: updateInfo, dismissUpdate } = useUpdateCheck(loading);
 
   const backgroundUrl = useBackgroundImage(
     config.background_image_path,
@@ -262,6 +265,23 @@ export default function App() {
           <div className="dock-scroll">
             {error ? <p className="error-text">{error}</p> : null}
             {loading ? <div className="loading-banner">Loading...</div> : null}
+
+            {updateInfo && (
+              <div className="update-banner">
+                <div className="update-banner-copy">
+                  <span className="update-banner-title">Update available</span>
+                  <span className="update-banner-detail">v{updateInfo.latestVersion} is out (you have v{updateInfo.currentVersion})</span>
+                </div>
+                <div className="update-banner-actions">
+                  <button className="primary-button" onClick={() => { invoke("open_external_url", { url: updateInfo.releaseUrl }); }} type="button">
+                    Get Update
+                  </button>
+                  <button className="ghost-button" onClick={dismissUpdate} type="button">
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="mode-toggle-row">
               <button
