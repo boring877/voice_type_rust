@@ -1,6 +1,6 @@
 [package]
 name = "voice_type"
-version = "0.7.1"
+version = "0.7.2"
 edition = "2024"
 authors = ["Anton AI Agent"]
 description = "Hold SHIFT to speak, release to type. Fast voice-to-text using Groq Whisper API."

@@ -74,7 +74,7 @@ export const APP_DISPLAY_NAME = "Voice Type";
 
 export const fallbackInfo: AppInfo = {
   appName: "Voice Type",
-  version: "0.2.0",
+  version: "0.7.2",
   backend: "Rust + Tokio"
 };
 

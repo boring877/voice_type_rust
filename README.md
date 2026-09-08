@@ -6,7 +6,7 @@ Hold your hotkey, speak, release, and the app transcribes your speech with Groq 
 
 ## Current State
 
-- Version: `0.3.2`
+- Version: `0.7.2`
 - Desktop shell: `Tauri 2`
 - Frontend: `React + TypeScript + Vite`
 - Backend engine: `Rust + Tokio`
@@ -86,7 +86,7 @@ You can either:
 bun run tauri build
 ```
 
-Output: `src-tauri/target/release/bundle/nsis/Voice Type_0.3.2_x64-setup.exe`
+Output: `src-tauri/target/release/bundle/nsis/Voice Type_0.7.2_x64-setup.exe`
 
 ### Microsoft Store (MSIX)
 
@@ -97,7 +97,7 @@ bun run tauri build
 bun run msix
 ```
 
-Output: `msix-output/Boring877.VoiceType_0.3.2.0_x64__kg07y93afj4jj.msix`
+Output: `msix-output/Boring877.VoiceType_0.7.2.0_x64__kg07y93afj4jj.msix`
 
 Upload the `.msix` file to [Microsoft Partner Center](https://partner.microsoft.com/dashboard) to update the Store listing.
 
