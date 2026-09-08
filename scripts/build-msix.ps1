@@ -1,11 +1,17 @@
 param(
-    [string]$Version = ""
+    [string]$Version = "",
+    [ValidateSet("x64", "arm64")]
+    [string]$Architecture = "x64"
 )
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $TauriRoot = Join-Path $ProjectRoot "src-tauri"
-$ReleaseDir = Join-Path $TauriRoot "target\release"
+$ReleaseDir = if ($Architecture -eq "arm64") {
+    Join-Path $TauriRoot "target\aarch64-pc-windows-msvc\release"
+} else {
+    Join-Path $TauriRoot "target\release"
+}
 $ExePath = Join-Path $ReleaseDir "voice_type_tauri.exe"
 $IconsDir = Join-Path $TauriRoot "icons"
 $OutputDir = Join-Path $ProjectRoot "msix-output"
@@ -29,7 +35,7 @@ $PackageVersion = "{0}.{1}.{2}.0" -f $Major, $Minor, $Patch
 $IdentityName = "Boring877.VoiceType"
 $Publisher = "CN=AA95BB46-4C4F-4A69-A44B-1C3DA80D5C2B"
 $PublisherId = "kg07y93afj4jj"
-$ProcessorArchitecture = "x64"
+$ProcessorArchitecture = if ($Architecture -eq "arm64") { "arm64" } else { "x64" }
 $MakeAppx = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.26100.0\x64\makeappx.exe"
 
 $PackageName = "{0}_{1}_{2}__{3}.msix" -f $IdentityName, $PackageVersion, $ProcessorArchitecture, $PublisherId
