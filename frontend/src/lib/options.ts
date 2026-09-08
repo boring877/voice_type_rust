@@ -10,6 +10,23 @@ export const styleOptions = [
   { value: "niko_style", label: "Niko style" },
 ];
 
+export const languageLabels: Record<string, string> = {
+  auto: "Auto-detect",
+  en: "English",
+  es: "Spanish",
+  ar: "Arabic",
+  el: "Greek",
+  ja: "Japanese",
+  zh: "Chinese",
+  fr: "French",
+  de: "German",
+  pt: "Portuguese",
+  hi: "Hindi",
+  ko: "Korean",
+  it: "Italian",
+  ru: "Russian"
+};
+
 export const languageOptions = [
   "auto",
   "en",
@@ -26,6 +43,17 @@ export const languageOptions = [
   "it",
   "ru"
 ];
+
+export function languageLabel(value: string): string {
+  return languageLabels[value] ?? value.toUpperCase();
+}
+
+export function languageHint(value: string): string {
+  if (value === "auto" || value === "") {
+    return "Detects the language you speak each time — you can freely mix languages.";
+  }
+  return `Locks transcription to ${languageLabel(value)}. Speaking another language may give unexpected results.`;
+}
 
 export const fallbackConfig: Config = {
   api_key: "",

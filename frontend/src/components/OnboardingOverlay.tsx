@@ -15,7 +15,7 @@ interface Props {
   onOpenApiKeyPage: () => void;
 }
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 const STORAGE_KEY = "voice-type-onboarding-done";
 
 const styleChoices = [
@@ -70,7 +70,8 @@ export function OnboardingOverlay(props: Props) {
 
         {step === 0 && <ApiKeyStep {...props} />}
         {step === 1 && <HotkeyStep {...props} />}
-        {step === 2 && <StyleStep {...props} />}
+        {step === 2 && <LanguageStep {...props} />}
+        {step === 3 && <StyleStep {...props} />}
 
         <div className="onboarding-actions">
           {step > 0 && (
@@ -197,6 +198,43 @@ function HotkeyStep(props: Props) {
         <p className="onboarding-capture-hint">
           {capturingHotkey ? "Press any key or mouse button now..." : captureMessage}
         </p>
+      </div>
+    </div>
+  );
+}
+
+function LanguageStep(props: Props) {
+  const { config, onUpdate } = props;
+
+  return (
+    <div className="onboarding-step-content">
+      <h2 id="onboarding-title">Speak Any Language</h2>
+      <p className="onboarding-desc">
+        Leave language on <strong>Auto-detect</strong> and Voice Type figures out what you speak — every
+        time you talk. Switch languages mid-conversation and it follows along.
+      </p>
+
+      <div className="onboarding-style-list">
+        <button
+          className={config.language === "auto" ? "onboarding-style-card active" : "onboarding-style-card"}
+          onClick={() => onUpdate("language", "auto")}
+          type="button"
+        >
+          <span className="onboarding-style-label">Auto-detect</span>
+          <span className="onboarding-style-desc">
+            Recommended. Detects the language you speak each time — mix freely.
+          </span>
+        </button>
+        <button
+          className={config.language !== "auto" ? "onboarding-style-card active" : "onboarding-style-card"}
+          onClick={() => onUpdate("language", config.language === "auto" ? "en" : config.language)}
+          type="button"
+        >
+          <span className="onboarding-style-label">Pick a language</span>
+          <span className="onboarding-style-desc">
+            Lock to one language for slightly better accuracy. Choose it in Settings later.
+          </span>
+        </button>
       </div>
     </div>
   );

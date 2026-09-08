@@ -13,6 +13,8 @@ import {
   Toggle
 } from "./controls";
 import {
+  languageHint,
+  languageLabel,
   languageOptions,
   modelOptions,
   styleOptions
@@ -168,9 +170,10 @@ export function SetupSection(props: {
           value={config.language}
           onChange={(value) => onUpdate("language", value)}
           options={languageOptions.map((value) => ({
-            label: value === "auto" ? "Auto" : value.toUpperCase(),
+            label: languageLabel(value),
             value
           }))}
+          hint={languageHint(config.language)}
         />
         <SelectField
           label="Whisper model"

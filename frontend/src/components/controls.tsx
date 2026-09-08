@@ -132,6 +132,7 @@ export function SelectField(props: {
   value: string;
   onChange: (value: string) => void;
   options: Array<{ label: string; value: string }>;
+  hint?: string;
 }) {
   return (
     <label className="field">
@@ -143,6 +144,7 @@ export function SelectField(props: {
           </option>
         ))}
       </select>
+      {props.hint ? <span className="field-hint">{props.hint}</span> : null}
     </label>
   );
 }
