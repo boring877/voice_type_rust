@@ -346,14 +346,7 @@ pub fn type_text(text: &str, leave_in_clipboard: bool) -> Result<()> {
         return Ok(());
     }
 
-    // For short text, type character by character
-    // For longer text, use clipboard paste
-    //
-    // Non-ASCII characters (CJK, accents, emoji) cannot be reliably typed via
-    // rdev's Key::Unknown path, which drops them. Route any text containing
-    // non-ASCII characters through the clipboard paste path regardless of length.
-    let has_non_ascii = text.chars().any(|c| !c.is_ascii());
-    if text.chars().count() > 10 || has_non_ascii {
+    if should_use_clipboard(text) {
         type_via_clipboard(text, leave_in_clipboard)
     } else {
         type_character_by_character(text)?;
@@ -362,6 +355,16 @@ pub fn type_text(text: &str, leave_in_clipboard: bool) -> Result<()> {
         }
         Ok(())
     }
+}
+
+fn should_use_clipboard(text: &str) -> bool {
+    // On Windows, rdev::Key::Unknown expects a platform scan code, not a
+    // Unicode character value. Passing `c as u32` therefore turns short text
+    // into unrelated keys (often digits and punctuation). Clipboard paste is
+    // the reliable path for all Windows text, including one-word results.
+    cfg!(target_os = "windows")
+        || text.chars().count() > 10
+        || text.chars().any(|c| !c.is_ascii())
 }
 
 /// Type text character by character
@@ -533,5 +536,12 @@ mod tests {
             InputBinding::Mouse(Button::Unknown(2))
         );
         assert!(normalize_browser_mouse_button(-1).is_none());
+    }
+
+    #[test]
+    #[cfg(target_os = "windows")]
+    fn short_text_uses_clipboard_on_windows() {
+        assert!(should_use_clipboard("hello"));
+        assert!(should_use_clipboard("yes"));
     }
 }

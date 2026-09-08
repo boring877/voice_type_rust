@@ -10,8 +10,9 @@ pub const WHISPER_MODEL: &str = DEFAULT_TRANSCRIPTION_MODEL;
 /// OpenAI-compatible audio transcription endpoint.
 pub const GROQ_API_URL: &str = "https://api.groq.com/openai/v1/audio/transcriptions";
 
-/// Groq OpenAI-compatible chat completions endpoint.
-pub const GROQ_CHAT_URL: &str = "https://api.groq.com/openai/v1/chat/completions";
+/// Groq models endpoint. Listing models is an authenticated, inference-free
+/// request, so it is suitable for validating credentials.
+pub const GROQ_MODELS_URL: &str = "https://api.groq.com/openai/v1/models";
 
 /// Request timeout in seconds
 ///

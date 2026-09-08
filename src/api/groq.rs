@@ -8,7 +8,7 @@ use async_trait::async_trait;
 use reqwest::multipart::{Form, Part};
 use std::sync::OnceLock;
 
-    use crate::api::constants::{GROQ_API_URL, GROQ_CHAT_URL, REQUEST_TIMEOUT, WHISPER_MODEL};
+use crate::api::constants::{GROQ_API_URL, GROQ_MODELS_URL, REQUEST_TIMEOUT, WHISPER_MODEL};
 use crate::api::provider::TranscriptionProvider;
 use crate::types::api::TranscriptionOptions;
 
@@ -151,19 +151,17 @@ fn extract_error_message(error: &serde_json::Value, raw_body: &str) -> String {
     raw_body.to_string()
 }
 
-/// Validate an API key by sending a minimal chat-completions request.
+/// Validate an API key with an authenticated request that does not run a model.
 pub async fn test_api_key(api_key: &str) -> Result<()> {
     let c = client()?;
-    let body = serde_json::json!({
-        "model": "llama-3.3-70b-versatile",
-        "messages": [{ "role": "user", "content": "hi" }],
-        "max_tokens": 1
-    });
+    let api_key = api_key.trim();
+    if api_key.is_empty() {
+        anyhow::bail!("API key is required");
+    }
 
     let response = c
-        .post(GROQ_CHAT_URL)
+        .get(GROQ_MODELS_URL)
         .header("Authorization", format!("Bearer {}", api_key))
-        .json(&body)
         .send()
         .await
         .context("Failed to send API key test request")?;

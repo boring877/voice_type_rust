@@ -42,7 +42,7 @@ export function QuickStartSection(props: {
     onUpdate
   } = props;
 
-  const [keyStatus, setKeyStatus] = useState<"idle" | "testing" | "valid" | "invalid">("idle");
+  const [keyStatus, setKeyStatus] = useState<"idle" | "testing" | "valid" | "invalid" | "error">("idle");
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -63,8 +63,9 @@ export function QuickStartSection(props: {
           apiKey: key
         });
         setKeyStatus("valid");
-      } catch {
-        setKeyStatus("invalid");
+      } catch (error) {
+        const message = String(error);
+        setKeyStatus(/\b(401|403)\b/.test(message) ? "invalid" : "error");
       }
     }, 500);
 
@@ -82,6 +83,8 @@ export function QuickStartSection(props: {
       <span className="key-status valid">Valid</span>
     ) : keyStatus === "invalid" ? (
       <span className="key-status invalid">Invalid</span>
+    ) : keyStatus === "error" ? (
+      <span className="key-status invalid">Check failed</span>
     ) : null;
 
   return (
